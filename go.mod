@@ -3,7 +3,6 @@ module github.com/go-modulus/mtools
 go 1.26
 
 require (
-	braces.dev/errtrace v0.4.0
 	github.com/amacneil/dbmate/v2 v2.31.0
 	github.com/fatih/color v1.18.0
 	github.com/gkampitakis/go-snaps v0.5.19
@@ -24,6 +23,7 @@ require (
 )
 
 require (
+	braces.dev/errtrace v0.4.0 // indirect
 	github.com/chigopher/pathlib v0.19.1 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect

@@ -1,16 +1,17 @@
 package db
 
 import (
-	"braces.dev/errtrace"
 	"errors"
 	"fmt"
+	"os"
+
 	_ "github.com/amacneil/dbmate/v2/pkg/driver/postgres"
 	"github.com/fatih/color"
+	"github.com/go-modulus/modulus/errors/errtrace"
 	"github.com/go-modulus/modulus/module"
 	"github.com/go-modulus/mtools/internal/mtools/action"
 	"github.com/manifoldco/promptui"
 	"github.com/urfave/cli/v2"
-	"os"
 )
 
 type Add struct {

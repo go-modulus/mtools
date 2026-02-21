@@ -18,7 +18,7 @@ install: ## Make a binary to ./bin folder
 
 .PHONY: analyze
 analyze: ## Run static analyzer
-	test -s ./bin/golangci-lint || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v2.1.6
+	test -s ./bin/golangci-lint || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v2.10.1
 	./bin/golangci-lint run -c ./.golangci.yaml ./...
 
 .PHONY: test
@@ -43,21 +43,21 @@ mocks:
 ####################################################################################################
 .PHONY: module-install
 module-install: ## install the modules from the modules manifest file https://github.com/go-modulus/modulus/blob/main/modules.json
-	go install github.com/go-modulus/modulus/cmd/mtools@latest
+	go install github.com/go-modulus/mtools/cmd/mtools@latest
 	mtools module install
 
 .PHONY: module-create
 module-create: ## create a new module in the project
-	go install github.com/go-modulus/modulus/cmd/mtools@latest
+	go install github.com/go-modulus/mtools/cmd/mtools@latest
 	mtools module create
 
 .PHONY: module-add-cli
 module-add-cli: ## add a new cli command to the module
-	go install github.com/go-modulus/modulus/cmd/mtools@latest
+	go install github.com/go-modulus/mtools/cmd/mtools@latest
 	mtools module add-cli
 
 module-add-json-api: ## add a new json api route to process in the module
-	go install github.com/go-modulus/modulus/cmd/mtools@latest
+	go install github.com/go-modulus/mtools/cmd/mtools@latest
 	mtools module add-json-api
 
 ####################################################################################################

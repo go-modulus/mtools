@@ -7,11 +7,11 @@ import (
 	"net/url"
 	"os"
 
-	"braces.dev/errtrace"
 	"github.com/amacneil/dbmate/v2/pkg/dbmate"
 	"github.com/fatih/color"
 	"github.com/go-modulus/modulus/config"
 	"github.com/go-modulus/modulus/db/pgx"
+	"github.com/go-modulus/modulus/errors/errtrace"
 	"github.com/go-modulus/modulus/module"
 	"github.com/laher/mergefs"
 	"github.com/sethvargo/go-envconfig"
