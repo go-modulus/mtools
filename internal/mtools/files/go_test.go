@@ -2,13 +2,14 @@ package files_test
 
 import (
 	"fmt"
+	"os"
+	"strings"
+	"testing"
+
 	"github.com/go-modulus/mtools/internal/mtools/files"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/thanhpk/randstr"
-	"os"
-	"strings"
-	"testing"
 )
 
 var fileContent = `//go:build tools
@@ -210,37 +211,6 @@ func TestAddPackageToGoFile(t *testing.T) {
 			require.Contains(t, string(fc), "import _ \"github.com/rakyll/gotest\"")
 			t.Log("	The new package should not be added")
 			require.NotContains(t, string(fc), "import a \"github.com/rakyll/gotest\"")
-		},
-	)
-}
-
-func TestAddImportToTools(t *testing.T) {
-	t.Run(
-		"Create tools.go if not exists", func(t *testing.T) {
-			dir := fmt.Sprintf("/tmp/%s", randstr.String(10))
-			if _, err := os.Stat(dir); os.IsNotExist(err) {
-				err = os.Mkdir(dir, 0755)
-				if err != nil {
-					t.Fatal("Cannot create /tmp/testproj dir", err)
-				}
-			}
-			defer os.Remove("tools.go")
-			defer os.Remove(dir)
-
-			err := os.Chdir(dir)
-			require.NoError(t, err)
-
-			err = files.AddImportToTools("github.com/stretchr/testify")
-			require.NoError(t, err)
-
-			fc, err := os.ReadFile("tools.go")
-			require.NoError(t, err)
-			t.Log("Given a go file")
-			t.Log("When add a new package to the go file")
-			t.Log("	The new package should be added to the tools.go file")
-			require.Contains(t, string(fc), "import _ \"github.com/stretchr/testify\"")
-			t.Log("The tools.go file should be created with package tools")
-			require.Contains(t, string(fc), "package tools")
 		},
 	)
 }

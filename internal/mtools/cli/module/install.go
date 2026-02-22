@@ -30,8 +30,6 @@ var ErrPackageIsEmpty = errbuilder.New("package is empty").
 var ErrCannotRunGoGetCommand = errbuilder.New("cannot run go get command").Build()
 var ErrCannotInstallModule = errbuilder.New("cannot install the module").
 	WithHint("The install field in the manifest file should be a valid command running under 'go run'").Build()
-var ErrCannotUpdateToolsFile = errbuilder.New("cannot update the tools file").
-	WithHint("Check the existence and rights for the tools.go file at the root folder of your project.").Build()
 
 type InstalledFileVars struct {
 	ModuleName     string
@@ -236,12 +234,6 @@ func (c *Install) installModule(
 		return errors.WithCause(ErrCannotRunGoGetCommand, err)
 	}
 
-	fmt.Printf("Adding the package %s to the tools.go file...\n", color.BlueString(md.Package))
-	err = files.AddImportToTools(md.Package)
-	if err != nil {
-		return errors.WithCause(ErrCannotUpdateToolsFile, err)
-	}
-
 	for _, entrypoint := range entrypoints {
 		fmt.Printf("Adding module initialization to the entrypoint %s ...\n", color.BlueString(entrypoint.name))
 		err = files.AddModuleToEntrypoint(md.Package, entrypoint.path)
@@ -290,13 +282,14 @@ func (c *Install) installModule(
 			return err
 		}
 		localModulePackage := projPackage + "/" + md.LocalPath
-		if !utils.FileExists(md.ModulePath(projPath)) {
-			err = os.MkdirAll(md.ModulePath(projPath), 0755)
+		mdPath := md.ModulePath(".")
+		if !utils.DirExists(mdPath) {
+			err = os.MkdirAll(mdPath, 0755)
 			if err != nil {
 				fmt.Println("Cannot create the module directory:", color.RedString(err.Error()))
 			}
 		}
-		if utils.FileExists(md.ModulePath(projPath) + "/module.go") {
+		if utils.FileExists(mdPath + "/module.go") {
 			for _, entrypoint := range entrypoints {
 				fmt.Printf("Adding module initialization to the entrypoint %s ...\n", color.BlueString(entrypoint.name))
 				err = files.AddModuleToEntrypoint(localModulePackage, entrypoint.path)
@@ -319,16 +312,14 @@ func (c *Install) installModule(
 		fmt.Printf("Running the post install commands for the module %s...\n", color.BlueString(md.Name))
 		for _, cmd := range md.Install.PostInstallCommands {
 			fmt.Printf("Adding the package %s to the tools.go file...\n", color.BlueString(md.Package))
-			err = exec.CommandContext(cmdCtx, "go", "get", cmd.CmdPackage).Run()
-			if err != nil {
-				return errors.WithCause(ErrCannotRunGoGetCommand, err)
+
+			runPckg := cmd.CmdPackage
+			if !strings.Contains(cmd.CmdPackage, "@") {
+				runPckg = cmd.CmdPackage + "@latest"
 			}
-			err = files.AddImportToTools(cmd.CmdPackage)
-			if err != nil {
-				return errors.WithCause(ErrCannotUpdateToolsFile, err)
-			}
-			fmt.Printf("Running %s...\n", color.BlueString("go run "+cmd.CmdPackage))
-			params := append([]string{"run", cmd.CmdPackage}, cmd.Params...)
+
+			fmt.Printf("Running %s...\n", color.BlueString("go run "+runPckg))
+			params := append([]string{"run", runPckg}, cmd.Params...)
 			err = exec.CommandContext(cmdCtx, "go", params...).Run()
 			if err != nil {
 				return errors.WithCause(ErrCannotInstallModule, err)
@@ -570,7 +561,8 @@ type entripoint struct {
 }
 
 func (c *Install) getEntrypoints() (entripoints []entripoint, err error) {
-	entries, err := os.ReadDir("./cmd")
+	cmdFolder := "./cmd"
+	entries, err := os.ReadDir(cmdFolder)
 	if err != nil {
 		return
 	}
@@ -580,7 +572,8 @@ func (c *Install) getEntrypoints() (entripoints []entripoint, err error) {
 			entryItem := entripoint{
 				name: entry.Name(),
 			}
-			_, err2 := os.Stat("./cmd/" + entry.Name() + "/main.go")
+			entryFile := cmdFolder + "/" + entry.Name() + "/main.go"
+			_, err2 := os.Stat(entryFile)
 			if os.IsNotExist(err2) {
 				continue
 			}
@@ -590,7 +583,7 @@ func (c *Install) getEntrypoints() (entripoints []entripoint, err error) {
 				fmt.Println(color.RedString("Error when getting an entrypoint %s: %s", entry.Name(), err.Error()))
 				return
 			}
-			entryItem.path = "./cmd/" + entry.Name() + "/main.go"
+			entryItem.path = entryFile
 			entripoints = append(entripoints, entryItem)
 		}
 	}

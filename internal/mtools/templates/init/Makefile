@@ -23,7 +23,8 @@ analyze: ## Run static analyzer
 
 .PHONY: test
 test: ## Run tests
-	go run github.com/rakyll/gotest -v -failfast ./internal/...
+	go install github.com/rakyll/gotest@latest
+	gotest -v -failfast  ./internal/...
 
 .PHONY: cover
 cover: ## Run tests with coverage
@@ -32,7 +33,8 @@ cover: ## Run tests with coverage
 
 .PHONY: mocks
 mocks:
-	go run github.com/vektra/mockery/v2/
+	go install github.com/vektra/mockery/v3@latest
+	mockery --config .mockery.yaml
 
 ####################################################################################################
 ## END OF MAIN COMMANDS

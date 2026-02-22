@@ -7,28 +7,12 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
-	"golang.org/x/tools/go/ast/astutil"
 	"os"
 	"strconv"
 	"strings"
-)
 
-func AddImportToTools(packageName string) error {
-	filename := "tools.go"
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		err := os.WriteFile(
-			filename,
-			[]byte("//go:build tools\n// +build tools\n\npackage tools\n\nimport _ \""+packageName+"\"\n\n"),
-			0644,
-		)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-	_, err := AddImportToGoFile(packageName, "_", "tools.go")
-	return err
-}
+	"golang.org/x/tools/go/ast/astutil"
+)
 
 // AddImportToGoFile add an import package call to a go file
 // Returns the package name that can be used in calls

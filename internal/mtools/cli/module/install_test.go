@@ -108,14 +108,6 @@ const availableModulesJson = ` {
   ]
 }`
 
-const localToolsGo = `//go:build tools
-// +build tools
-
-package tools
-
-import _ "github.com/go-modulus/modulus/cli"
-`
-
 const consoleEntrypoint = `
 package main
 
@@ -201,7 +193,6 @@ func initProject(t *testing.T, projDir string, goModFile string) func() {
 		if err != nil {
 			t.Fatal("Cannot create "+manifestDir+" dir", err)
 		}
-		createFile(t, projDir, "tools.go", localToolsGo)
 		createFile(t, projDir, "modules.json", localModulesJson)
 		createFile(t, manifestDir, "modules.json", availableModulesJson)
 		createFile(t, projDir, ".env", envFile)
@@ -240,18 +231,13 @@ func TestInstall_Invoke(t *testing.T) {
 			ctx := cli.NewContext(app, set, nil)
 			err = installModule.Invoke(ctx)
 
-			toolsFileContent, errCont := os.ReadFile(fmt.Sprintf("%s/tools.go", projDir))
 			entrypointFileContent, errCont2 := os.ReadFile(fmt.Sprintf("%s/cmd/console/main.go", projDir))
 			envContent, errCont3 := os.ReadFile(fmt.Sprintf("%s/.env", projDir))
 			modulesContent, errCont4 := os.ReadFile(fmt.Sprintf("%s/modules.json", projDir))
 
-			t.Log("Given the tools.go file in the root of the project")
 			t.Log("When install a new module to a project")
 			t.Log("	The error should be nil")
 			require.NoError(t, err)
-			t.Log("	The new package should be added to the tools.go file")
-			require.NoError(t, errCont)
-			require.Contains(t, string(toolsFileContent), "github.com/go-modulus/modulus/db/pgx")
 			t.Log("	The entrypoint file should be updated with the new module")
 			require.NoError(t, errCont2)
 			require.Contains(t, string(entrypointFileContent), "github.com/go-modulus/modulus/db/pgx")
@@ -285,19 +271,13 @@ func TestInstall_Invoke(t *testing.T) {
 			ctx := cli.NewContext(app, set, nil)
 			err = installModule.Invoke(ctx)
 
-			toolsFileContent, errCont := os.ReadFile(fmt.Sprintf("%s/tools.go", projDir))
 			entrypointFileContent, errCont2 := os.ReadFile(fmt.Sprintf("%s/cmd/console/main.go", projDir))
 			envContent, errCont3 := os.ReadFile(fmt.Sprintf("%s/.env", projDir))
 			modulesContent, errCont4 := os.ReadFile(fmt.Sprintf("%s/modules.json", projDir))
 
-			t.Log("Given the tools.go file in the root of the project")
 			t.Log("When install a migrator that has dependencies on pgx")
 			t.Log("	The error should be nil")
 			require.NoError(t, err)
-			t.Log("	Both pgx and migrator packages should be added to the tools.go file")
-			require.NoError(t, errCont)
-			require.Contains(t, string(toolsFileContent), "github.com/go-modulus/modulus/db/pgx")
-			require.Contains(t, string(toolsFileContent), "github.com/go-modulus/modulus/db/migrator")
 			t.Log("	The entrypoint file should be updated with the new two modules")
 			require.NoError(t, errCont2)
 			require.Contains(t, string(entrypointFileContent), "github.com/go-modulus/modulus/db/pgx")
@@ -330,7 +310,6 @@ func TestInstall_Invoke(t *testing.T) {
 
 			entrypointFileContent, errCont2 := os.ReadFile(fmt.Sprintf("%s/cmd/console/main.go", projDir))
 
-			t.Log("Given the tools.go file in the root of the project")
 			t.Log("When install a graphql module that has local path of module")
 			t.Log("	The error should be nil")
 			require.NoError(t, err)

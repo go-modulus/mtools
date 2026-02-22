@@ -14,7 +14,8 @@ help: ## show this help message
 
 .PHONY: test
 test: ## Run tests
-	go run github.com/rakyll/gotest -v -failfast  ./...
+	go install github.com/rakyll/gotest@latest
+	gotest -v -failfast  ./...
 
 .PHONY: analyze
 analyze: ## Run static analyzer
@@ -47,7 +48,7 @@ build-testproject: ## Build the example of a project
 	cd ./testproj && go run cmd/console/main.go migrator migrate
 	./bin/mtools module add-cli --proj-path=./testproj --module=example --name=hello-world
 	cd ./testproj && go run cmd/console/main.go hello-world
-	./bin/mtools module install --proj-path=./testproj --manifest="modules.json" -m "chi http"
+	./bin/mtools module install --proj-path=./testproj -m "chi http"
 	./bin/mtools module add-json-api --proj-path=./testproj --module=example --uri=/hello-world --name=HelloWorld --method=GET --silent
-	./bin/mtools module install --proj-path=./testproj --manifest="modules.json" -m "gqlgen"
+	./bin/mtools module install --proj-path=./testproj -m "gqlgen"
 

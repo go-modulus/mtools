@@ -1,10 +1,11 @@
 all: false
 recursive: true
+template: testify
+template-data:
+  unroll-variadic: true
 packages:
 #  testproj/internal/testpckg:
-#    # place your package-specific config here
 #    config:
-#      dir: "{{.InterfaceDir}}/mocks"
-#      outpkg: mocks
+#      pkgname: testpckg_test
 #    interfaces:
-#      TestInterface:
+#      InterfaceNameToBeMocked: {}

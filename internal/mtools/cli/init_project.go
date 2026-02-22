@@ -208,7 +208,6 @@ func (c *InitProject) createProjectRelatedFiles() error {
 		"gitignore":      ".gitignore",
 		".golangci.yaml": ".golangci.yaml",
 		".mockery.yaml":  ".mockery.yaml",
-		"tools.go":       "tools.go",
 		"main.go":        "cmd/console/main.go",
 		"modules.json":   "modules.json",
 	}
