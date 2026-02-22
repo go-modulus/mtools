@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/go-modulus/modulus/cli"
 	"github.com/go-modulus/modulus/logger"
 	"github.com/go-modulus/modulus/module"
@@ -9,7 +11,6 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 	"go.uber.org/zap"
-	"os"
 )
 
 func main() {
@@ -17,12 +18,12 @@ func main() {
 	path, _ := os.Getwd()
 	cliModule := cli.NewModule().InitConfig(
 		cli.ModuleConfig{
-			Version: "0.3.2",
-			Usage:   "This is a CLI tool for the Modulus framework. It helps you to create a new project, add modules, and run the project.",
+			Version: "0.1.1",
+			Usage:   "This is a CLI tool for the Modulus framework. It helps developer to create a new project, add modules, and manage the project.",
 			GlobalFlags: []cli2.Flag{
 				&cli2.StringFlag{
 					Name:    "proj-path",
-					Usage:   "Set the path to the project if you want to run the command from another directory",
+					Usage:   "Set the path to the project if it is necessary to run the command from another directory",
 					Value:   path,
 					Aliases: []string{"p"},
 					EnvVars: []string{"PROJECT_PATH"},
