@@ -2,7 +2,7 @@
 CLI application to manage a project built over [Modulus framework](https://github.com/go-modulus/modulus).
 
 ## Usage
-Mtools is a CLI application. Install it using `go install github.com/go-modulus/mtools@latest`
+Mtools is a CLI application. Install it using `go install github.com/go-modulus/mtools/cmd/mtools@latest`
 
 It allows:
 * init a project `mtools init`
