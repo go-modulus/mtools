@@ -2,6 +2,8 @@ package module
 
 import (
 	"fmt"
+	"regexp"
+
 	"github.com/fatih/color"
 	"github.com/go-modulus/modulus/module"
 	"github.com/go-modulus/mtools/internal/mtools/cli/flag"
@@ -10,7 +12,6 @@ import (
 	"github.com/iancoleman/strcase"
 	"github.com/manifoldco/promptui"
 	"github.com/urfave/cli/v2"
-	"regexp"
 )
 
 var nameRegEx = regexp.MustCompile(`^[a-z0-9-]+$`)
@@ -98,7 +99,7 @@ func (a *AddCli) Invoke(ctx *cli.Context) error {
 func (a *AddCli) createCommandFile(
 	structName string,
 	commandName string,
-	mod module.ManifestModule,
+	mod module.Manifesto,
 	projPath string,
 ) error {
 	path := mod.CliPath(projPath)

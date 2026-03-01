@@ -13,6 +13,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/go-modulus/modulus/errors"
 	"github.com/go-modulus/modulus/module"
+	"github.com/go-modulus/mtools/internal/manifesto"
 	"github.com/go-modulus/mtools/internal/mtools/action"
 	"github.com/go-modulus/mtools/internal/mtools/files"
 	"github.com/go-modulus/mtools/internal/mtools/templates"
@@ -30,7 +31,7 @@ type features struct {
 }
 
 type TmplVars struct {
-	Module     module.ManifestModule
+	Module     module.Manifesto
 	HasStorage bool
 }
 
@@ -141,11 +142,11 @@ func (c *Create) Invoke(
 
 func (c *Create) updateEntripoints(
 	projPath string,
-	md module.ManifestModule,
+	md module.Manifesto,
 ) error {
 	fmt.Println(color.BlueString("Updating entrypoints..."))
 
-	manifest, err := module.LoadLocalManifest(projPath)
+	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	if err != nil {
 		fmt.Println(color.RedString("Cannot get a local manifest: %s", err.Error()))
 		return err
@@ -170,7 +171,7 @@ func (c *Create) updateEntripoints(
 
 func (c *Create) installStorageFeature(
 	ctx *cli.Context,
-	md module.ManifestModule,
+	md module.Manifesto,
 	projPath string,
 ) error {
 	cfg := action.StorageConfig{
@@ -283,7 +284,7 @@ func (c *Create) askYesNo(label string) (bool, error) {
 }
 
 func (c *Create) addModuleFile(
-	md module.ManifestModule,
+	md module.Manifesto,
 	projPath string,
 	selectedFeatures features,
 ) error {
@@ -318,8 +319,8 @@ func (c *Create) addModuleFile(
 	return nil
 }
 
-func (c *Create) saveManifestItem(manifestItem module.ManifestModule, projPath string) (err error) {
-	manifest, err := module.LoadLocalManifest(projPath)
+func (c *Create) saveManifestItem(manifestItem module.Manifesto, projPath string) (err error) {
+	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	if err != nil {
 		fmt.Println(color.RedString("Cannot get a local manifest: %s", err.Error()))
 		return err
@@ -362,7 +363,7 @@ func (c *Create) getProjModuleName(projPath string) (string, error) {
 }
 
 func (c *Create) getManifestItem(ctx *cli.Context, projPath string) (
-	res module.ManifestModule,
+	res module.Manifesto,
 	err error,
 ) {
 	isSilent := ctx.Bool("silent")
@@ -370,12 +371,12 @@ func (c *Create) getManifestItem(ctx *cli.Context, projPath string) (
 	if pckg == "" {
 		if isSilent {
 			fmt.Println(color.RedString("The package name is not provided. Please add the --package flag or remove the --silent=true flag"))
-			return module.ManifestModule{}, errors.New("the package name is not provided")
+			return module.Manifesto{}, errors.New("the package name is not provided")
 		}
 		pckg, err = c.askPackage()
 		if err != nil {
 			fmt.Println(color.RedString("Cannot ask a package name: %s", err.Error()))
-			return module.ManifestModule{}, err
+			return module.Manifesto{}, err
 		}
 	} else {
 		if !pckgNameRegexp.MatchString(pckg) {
@@ -385,7 +386,7 @@ func (c *Create) getManifestItem(ctx *cli.Context, projPath string) (
 					pckg,
 				),
 			)
-			return module.ManifestModule{}, errors.New("the package name is not valid")
+			return module.Manifesto{}, errors.New("the package name is not valid")
 		}
 	}
 
@@ -395,7 +396,7 @@ func (c *Create) getManifestItem(ctx *cli.Context, projPath string) (
 			name, err = c.askName(pckg)
 			if err != nil {
 				fmt.Println(color.RedString("Cannot ask a name: %s", err.Error()))
-				return module.ManifestModule{}, err
+				return module.Manifesto{}, err
 			}
 		} else {
 			// If we are in a silence mode, we need to get a name from the package
@@ -409,7 +410,7 @@ func (c *Create) getManifestItem(ctx *cli.Context, projPath string) (
 			path, err = c.askPath(projPath, pckg)
 			if err != nil {
 				fmt.Println(color.RedString("Cannot ask a path: %s", err.Error()))
-				return module.ManifestModule{}, err
+				return module.Manifesto{}, err
 			}
 		} else {
 			path = c.getDefaultPath(pckg)
@@ -420,10 +421,10 @@ func (c *Create) getManifestItem(ctx *cli.Context, projPath string) (
 
 	projPckg, err := c.getProjModuleName(projPath)
 	if err != nil {
-		return module.ManifestModule{}, err
+		return module.Manifesto{}, err
 	}
 
-	res = module.ManifestModule{
+	res = module.Manifesto{
 		Name:          name,
 		Package:       projPckg + "/" + path,
 		Description:   "",

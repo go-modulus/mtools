@@ -6,7 +6,7 @@ require (
 	github.com/amacneil/dbmate/v2 v2.31.0
 	github.com/fatih/color v1.18.0
 	github.com/gkampitakis/go-snaps v0.5.19
-	github.com/go-modulus/modulus v0.4.14
+	github.com/go-modulus/modulus v0.5.0-rc.2
 	github.com/iancoleman/strcase v0.3.0
 	github.com/laher/mergefs v0.1.1
 	github.com/manifoldco/promptui v0.9.0

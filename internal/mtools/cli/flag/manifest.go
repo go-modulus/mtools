@@ -9,20 +9,25 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/go-modulus/modulus/module"
+	"github.com/go-modulus/mtools/internal/manifesto"
 	"github.com/urfave/cli/v2"
 )
 
 func NewManifest(usage string) cli.Flag {
 	return &cli.StringFlag{
-		Name:    "manifest",
-		Usage:   usage,
-		Aliases: []string{"mf"},
+		Name:        "manifest",
+		Usage:       usage,
+		DefaultText: "https://raw.githubusercontent.com/go-modulus/registry/refs/heads/main/modules.json",
+		Aliases:     []string{"mf"},
+		Value:       "https://raw.githubusercontent.com/go-modulus/registry/refs/heads/main/modules.json",
 	}
 }
 
-func ManifestValue(ctx *cli.Context) (*module.Manifest, error) {
+func ManifestValue(ctx *cli.Context) (*manifesto.LocalManifesto, error) {
 	manifestPath := ctx.String("manifest")
+	if manifestPath == "" {
+		return manifestFromURL("https://raw.githubusercontent.com/go-modulus/registry/refs/heads/main/modules.json")
+	}
 
 	if strings.HasPrefix(manifestPath, "https://") {
 		return manifestFromURL(manifestPath)
@@ -30,14 +35,11 @@ func ManifestValue(ctx *cli.Context) (*module.Manifest, error) {
 	if strings.HasPrefix(manifestPath, "http://") {
 		return manifestFromURL(manifestPath)
 	}
-	if manifestPath == "" {
-		return manifestFromURL("https://raw.githubusercontent.com/go-modulus/modulus/refs/heads/main/modules.json")
-	}
 
 	manifestFs := os.DirFS(filepath.Dir(manifestPath))
 	manifestFile := filepath.Base(manifestPath)
 
-	availableModulesManifest, err := module.NewFromFs(manifestFs, manifestFile)
+	availableModulesManifest, err := manifesto.NewFromFs(manifestFs, manifestFile)
 	if err != nil {
 		fmt.Println(color.RedString("Cannot read from the manifest file: %s", err.Error()))
 		return nil, err
@@ -45,7 +47,7 @@ func ManifestValue(ctx *cli.Context) (*module.Manifest, error) {
 	return availableModulesManifest, nil
 }
 
-func manifestFromURL(url string) (*module.Manifest, error) {
+func manifestFromURL(url string) (*manifesto.LocalManifesto, error) {
 	resp, err := http.Get(url) //nolint:noctx
 	if err != nil {
 		fmt.Println(color.RedString("Cannot fetch the manifest from URL: %s", err.Error()))
@@ -65,7 +67,7 @@ func manifestFromURL(url string) (*module.Manifest, error) {
 		return nil, err
 	}
 
-	m := &module.Manifest{}
+	m := &manifesto.LocalManifesto{}
 	if err = m.ReadFromJSON(data); err != nil {
 		fmt.Println(color.RedString("Cannot parse the manifest JSON: %s", err.Error()))
 		return nil, err

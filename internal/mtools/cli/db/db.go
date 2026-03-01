@@ -12,7 +12,7 @@ import (
 	"github.com/go-modulus/modulus/config"
 	"github.com/go-modulus/modulus/db/pgx"
 	"github.com/go-modulus/modulus/errors/errtrace"
-	"github.com/go-modulus/modulus/module"
+	"github.com/go-modulus/mtools/internal/manifesto"
 	"github.com/laher/mergefs"
 	"github.com/sethvargo/go-envconfig"
 	"github.com/urfave/cli/v2"
@@ -51,7 +51,7 @@ func commonMigrationFs(projPath string, manifestFile string) (fs.FS, error) {
 	if manifestFile == "" {
 		manifestFile = "modules.json"
 	}
-	manifest, err := module.NewFromFs(projFs, manifestFile)
+	manifest, err := manifesto.NewFromFs(projFs, manifestFile)
 	if err != nil {
 		fmt.Println(color.RedString("Cannot load the project manifest %s/modules.json: %s", projPath, err.Error()))
 		return nil, errtrace.Wrap(err)

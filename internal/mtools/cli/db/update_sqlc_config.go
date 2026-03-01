@@ -3,8 +3,9 @@ package db
 import (
 	"errors"
 	"fmt"
+
 	"github.com/fatih/color"
-	"github.com/go-modulus/modulus/module"
+	"github.com/go-modulus/mtools/internal/manifesto"
 	"github.com/go-modulus/mtools/internal/mtools/action"
 	"github.com/urfave/cli/v2"
 )
@@ -31,7 +32,7 @@ Example: mtools db update-sqlc-config
 
 func (c *UpdateSQLCConfig) Invoke(ctx *cli.Context) error {
 	projPath := ctx.String("proj-path")
-	manifest, err := module.LoadLocalManifest(projPath)
+	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	if err != nil {
 		fmt.Println(color.RedString("Cannot load the project manifest %s/modules.json: %s", projPath, err.Error()))
 		return err

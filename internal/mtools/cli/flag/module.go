@@ -3,8 +3,10 @@ package flag
 import (
 	"errors"
 	"fmt"
+
 	"github.com/fatih/color"
 	"github.com/go-modulus/modulus/module"
+	"github.com/go-modulus/mtools/internal/manifesto"
 	"github.com/manifoldco/promptui"
 	"github.com/urfave/cli/v2"
 )
@@ -17,28 +19,28 @@ func NewModule(usage string) cli.Flag {
 	}
 }
 
-func ModuleValue(ctx *cli.Context) (module.ManifestModule, error) {
+func ModuleValue(ctx *cli.Context) (module.Manifesto, error) {
 	isSilent := ctx.Bool("silent")
 	moduleName := ctx.String("module")
 	projPath := ctx.String("proj-path")
-	manifest, err := module.LoadLocalManifest(projPath)
+	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	if err != nil {
 		fmt.Printf(
 			"Cannot load the project manifest %s/modules.json: %s\n",
 			color.BlueString(projPath),
 			color.RedString(err.Error()),
 		)
-		return module.ManifestModule{}, err
+		return module.Manifesto{}, err
 	}
 
 	if moduleName == "" {
 		if isSilent {
 			fmt.Println(color.RedString("The module name is required. Use the --module flag"))
-			return module.ManifestModule{}, errors.New("module name is required")
+			return module.Manifesto{}, errors.New("module name is required")
 		} else {
-			moduleName, err = askModuleName(manifest)
+			moduleName, err = askModuleName(*manifest)
 			if err != nil {
-				return module.ManifestModule{}, err
+				return module.Manifesto{}, err
 			}
 		}
 	}
@@ -56,14 +58,14 @@ func ModuleValue(ctx *cli.Context) (module.ManifestModule, error) {
 			fmt.Println(color.BlueString(manifestModule.Name))
 		}
 		fmt.Println("")
-		return module.ManifestModule{}, errors.New("module not found")
+		return module.Manifesto{}, errors.New("module not found")
 	}
 
 	return mod, nil
 }
 
 func askModuleName(
-	manifest module.Manifest,
+	manifest manifesto.LocalManifesto,
 ) (string, error) {
 	items := make([]string, 0)
 	for _, md := range manifest.LocalModules() {

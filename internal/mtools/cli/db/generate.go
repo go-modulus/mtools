@@ -2,12 +2,13 @@ package db
 
 import (
 	"fmt"
+	"os/exec"
+
 	"github.com/fatih/color"
-	"github.com/go-modulus/modulus/module"
+	"github.com/go-modulus/mtools/internal/manifesto"
 	"github.com/go-modulus/mtools/internal/mtools/action"
 	"github.com/go-modulus/mtools/internal/mtools/utils"
 	"github.com/urfave/cli/v2"
-	"os/exec"
 )
 
 type Generate struct {
@@ -32,11 +33,9 @@ Example: mtools db generate
 
 func (c *Generate) Invoke(ctx *cli.Context) error {
 	projPath := ctx.String("proj-path")
-	manifest, err := module.LoadLocalManifest(projPath)
+	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	fmt.Println(
-		"Generating DTO and DAO files for the project",
-		color.BlueString(manifest.Name),
-		"at",
+		"Generating DTO and DAO files for the project at",
 		color.BlueString(projPath),
 	)
 	if err != nil {

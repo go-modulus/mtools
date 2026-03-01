@@ -26,7 +26,7 @@ type StorageConfig struct {
 
 type InstallStorageTmplVars struct {
 	Config         StorageConfig
-	Module         module.ManifestModule
+	Module         module.Manifesto
 	StoragePackage string
 }
 
@@ -40,7 +40,7 @@ func NewInstallStorage(config *UpdateSqlcConfig) *InstallStorage {
 	}
 }
 
-func (c *InstallStorage) Install(ctx context.Context, md module.ManifestModule, cfg StorageConfig) error {
+func (c *InstallStorage) Install(ctx context.Context, md module.Manifesto, cfg StorageConfig) error {
 	storagePath := md.StoragePath(cfg.ProjPath)
 	err := utils.CreateDirIfNotExists(storagePath)
 	if err != nil {

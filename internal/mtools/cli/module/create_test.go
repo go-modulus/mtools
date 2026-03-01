@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/go-modulus/modulus/module"
+	"github.com/go-modulus/mtools/internal/manifesto"
 	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v2"
 )
@@ -33,7 +34,7 @@ func TestCreateModule_Invoke(t *testing.T) {
 			storageDir := fmt.Sprintf("%s/internal/mypckg/storage", projDir)
 			_, errStorageDir := os.Stat(storageDir)
 
-			localManifest, errCont := module.LoadLocalManifest(projDir)
+			localManifest, errCont := manifesto.LoadLocalManifesto(projDir)
 			moduleContent, errCont1 := os.ReadFile(fmt.Sprintf("%s/module.go", moduleDir))
 			tmplYaml, errCont2 := os.ReadFile(fmt.Sprintf("%s/sqlc.tmpl.yaml", storageDir))
 			defStorageYaml, errCont3 := os.ReadFile(fmt.Sprintf("%s/sqlc.definition.yaml", projDir))
@@ -46,7 +47,7 @@ func TestCreateModule_Invoke(t *testing.T) {
 			t.Log("	The new module should be added to the local manifest")
 			require.NoError(t, errCont)
 			require.Contains(
-				t, localManifest.Modules, module.ManifestModule{
+				t, localManifest.Modules, module.Manifesto{
 					Name:          "mypckg",
 					Package:       "testproj/internal/mypckg",
 					Description:   "",

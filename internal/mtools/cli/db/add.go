@@ -9,6 +9,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/go-modulus/modulus/errors/errtrace"
 	"github.com/go-modulus/modulus/module"
+	"github.com/go-modulus/mtools/internal/manifesto"
 	"github.com/go-modulus/mtools/internal/mtools/action"
 	"github.com/manifoldco/promptui"
 	"github.com/urfave/cli/v2"
@@ -49,7 +50,7 @@ Example: mtools db add --proj-path=/path/to/project/root --module=example --name
 
 func (c *Add) Invoke(ctx *cli.Context) error {
 	projPath := ctx.String("proj-path")
-	manifest, err := module.LoadLocalManifest(projPath)
+	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	if err != nil {
 		fmt.Println(color.RedString("Cannot load the project manifest %s/modules.json: %s", projPath, err.Error()))
 		return err
@@ -105,7 +106,7 @@ func (c *Add) Invoke(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *Add) askModuleName(modules []module.ManifestModule) string {
+func (c *Add) askModuleName(modules []module.Manifesto) string {
 	items := make([]string, 0)
 	for _, md := range modules {
 		if md.IsLocalModule {

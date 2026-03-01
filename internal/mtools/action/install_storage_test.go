@@ -3,12 +3,13 @@ package action_test
 import (
 	"context"
 	"fmt"
+	"os"
+	"testing"
+
 	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/go-modulus/modulus/module"
 	"github.com/go-modulus/mtools/internal/mtools/action"
 	"github.com/stretchr/testify/require"
-	"os"
-	"testing"
 )
 
 func TestInstallStorage_Install(t *testing.T) {
@@ -25,11 +26,11 @@ func TestInstallStorage_Install(t *testing.T) {
 			err = os.Mkdir(moduleDir, 0755)
 			require.NoError(t, err)
 
-			md := module.ManifestModule{
+			md := module.Manifesto{
 				Name:        "My package",
 				Package:     "mypckg",
 				Description: "",
-				Install:     module.InstallManifest{},
+				Install:     module.InstallationManifesto{},
 				Version:     "",
 				LocalPath:   "mypckg",
 			}

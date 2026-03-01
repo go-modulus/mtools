@@ -18,6 +18,7 @@ import (
 	"github.com/go-modulus/modulus/errors"
 	"github.com/go-modulus/modulus/errors/errbuilder"
 	"github.com/go-modulus/modulus/module"
+	"github.com/go-modulus/mtools/internal/manifesto"
 	"github.com/go-modulus/mtools/internal/mtools/cli/flag"
 	"github.com/go-modulus/mtools/internal/mtools/files"
 	"github.com/go-modulus/mtools/internal/mtools/utils"
@@ -117,7 +118,7 @@ func (c *Install) Invoke(
 		)
 	}
 
-	var modules []module.ManifestModule
+	var modules []module.Manifesto
 	if len(modulesValue) != 0 {
 		fmt.Printf("Modules to install: %s\n", color.BlueString(strings.Join(modulesValue, ", ")))
 		for _, val := range modulesValue {
@@ -197,27 +198,13 @@ func (c *Install) Invoke(
 	return nil
 }
 
-func (c *Install) getLocalManifest() (module.Manifest, error) {
-	res := module.Manifest{
-		Modules:     make([]module.ManifestModule, 0),
-		Version:     "1.0.0",
-		Name:        "Modulus framework modules manifest",
-		Description: "List of installed modules for the Modulus framework",
-	}
-	if utils.FileExists("modules.json") {
-		projFs := os.DirFS("./")
-		manifest, err := module.NewFromFs(projFs, "modules.json")
-		if err != nil {
-			return res, err
-		}
-		return *manifest, nil
-	}
-	return res, nil
+func (c *Install) getLocalManifest() (*manifesto.LocalManifesto, error) {
+	return manifesto.LoadLocalManifesto(".")
 }
 
 func (c *Install) installModule(
 	ctx context.Context,
-	md module.ManifestModule,
+	md module.Manifesto,
 	entrypoints []entripoint,
 	projPath string,
 ) error {
@@ -332,7 +319,7 @@ func (c *Install) installModule(
 }
 
 func (c *Install) copyRemoteFile(
-	md module.ManifestModule,
+	md module.Manifesto,
 	file module.InstalledFile,
 ) error {
 	if utils.FileExists(file.DestFile) {
@@ -421,13 +408,13 @@ func (c *Install) getProjPackage() (string, error) {
 }
 
 func (c *Install) addDependedModulesToInstall(
-	availableModulesManifest *module.Manifest,
-	installedModules []module.ManifestModule,
-	modulesToInstall []module.ManifestModule,
-) ([]module.ManifestModule, error) {
-	addedModules := make([]module.ManifestModule, 0)
+	availableModulesManifest *manifesto.LocalManifesto,
+	installedModules []module.Manifesto,
+	modulesToInstall []module.Manifesto,
+) ([]module.Manifesto, error) {
+	addedModules := make([]module.Manifesto, 0)
 	addedModulesMap := make(map[string]struct{})
-	availableModulesMap := make(map[string]module.ManifestModule)
+	availableModulesMap := make(map[string]module.Manifesto)
 	for _, md := range availableModulesManifest.Modules {
 		availableModulesMap[md.Name] = md
 	}
@@ -456,12 +443,12 @@ func (c *Install) addDependedModulesToInstall(
 }
 
 func (c *Install) askModulesFromManifest(
-	availableModulesManifest *module.Manifest,
-	installedModules []module.ManifestModule,
-) ([]module.ManifestModule, error) {
-	res := make([]module.ManifestModule, 0)
+	availableModulesManifest *manifesto.LocalManifesto,
+	installedModules []module.Manifesto,
+) ([]module.Manifesto, error) {
+	res := make([]module.Manifesto, 0)
 	resNames := make([]string, 0)
-	fmt.Println(color.BlueString(availableModulesManifest.Name))
+	fmt.Println(color.BlueString("Available modules:"))
 
 	templates := &promptui.SelectTemplates{
 		Label:    "{{if .IsSelected}}\U0001F4E6 {{ .Name | blue | faint }}{{else}}{{ . }}{{end}}",

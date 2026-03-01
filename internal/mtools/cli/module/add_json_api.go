@@ -2,6 +2,10 @@ package module
 
 import (
 	"fmt"
+	"net/http"
+	"regexp"
+	"strings"
+
 	"github.com/fatih/color"
 	"github.com/go-modulus/modulus/module"
 	"github.com/go-modulus/mtools/internal/mtools/cli/flag"
@@ -10,9 +14,6 @@ import (
 	"github.com/iancoleman/strcase"
 	"github.com/manifoldco/promptui"
 	"github.com/urfave/cli/v2"
-	"net/http"
-	"regexp"
-	"strings"
 )
 
 var apiHandlerNameRegEx = regexp.MustCompile(`^[A-Z]+[a-zA-Z0-9_]*$`)
@@ -137,7 +138,7 @@ func (a *AddJsonApi) Invoke(ctx *cli.Context) error {
 func (a *AddJsonApi) createApiHandlerFile(
 	structName string,
 	uri string,
-	mod module.ManifestModule,
+	mod module.Manifesto,
 	projPath string,
 	method string,
 ) error {
@@ -218,7 +219,7 @@ func (a *AddJsonApi) askApiHandlerName() string {
 	}
 }
 
-func (a *AddJsonApi) askApiHandlerUri(module module.ManifestModule, structName string) string {
+func (a *AddJsonApi) askApiHandlerUri(module module.Manifesto, structName string) string {
 	modName := strcase.ToKebab(module.Name)
 	defUrl := "/" + modName + "/" + strcase.ToKebab(structName)
 	for {
