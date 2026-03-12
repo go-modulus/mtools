@@ -40,7 +40,7 @@ const availableModulesJson = ` {
     },
     {
       "name": "pgx",
-      "package": "github.com/go-modulus/modulus/db/pgx",
+      "package": "github.com/go-modulus/pgx",
       "description": "A wrapper for the pgx package to integrate it into the Modulus framework.",
       "install": {
         "envVars": [
@@ -240,7 +240,7 @@ func TestInstall_Invoke(t *testing.T) {
 			require.NoError(t, err)
 			t.Log("	The entrypoint file should be updated with the new module")
 			require.NoError(t, errCont2)
-			require.Contains(t, string(entrypointFileContent), "github.com/go-modulus/modulus/db/pgx")
+			require.Contains(t, string(entrypointFileContent), "github.com/go-modulus/pgx")
 			require.Contains(t, string(entrypointFileContent), "pgx.NewModule()")
 			t.Log("	The .env file should be changed with new env variables")
 			require.NoError(t, errCont3)
@@ -252,7 +252,7 @@ func TestInstall_Invoke(t *testing.T) {
 			require.Contains(t, string(envContent), "# Test comment")
 			t.Log("	The modules.json file should be updated with the new module")
 			require.NoError(t, errCont4)
-			require.Contains(t, string(modulesContent), "github.com/go-modulus/modulus/db/pgx")
+			require.Contains(t, string(modulesContent), "github.com/go-modulus/pgx")
 		},
 	)
 
@@ -280,7 +280,7 @@ func TestInstall_Invoke(t *testing.T) {
 			require.NoError(t, err)
 			t.Log("	The entrypoint file should be updated with the new two modules")
 			require.NoError(t, errCont2)
-			require.Contains(t, string(entrypointFileContent), "github.com/go-modulus/modulus/db/pgx")
+			require.Contains(t, string(entrypointFileContent), "github.com/go-modulus/pgx")
 			require.Contains(t, string(entrypointFileContent), "pgx.NewModule()")
 			require.Contains(t, string(entrypointFileContent), "migrator.NewModule()")
 			t.Log("	The .env file should be changed with pgx env variables")
@@ -288,7 +288,7 @@ func TestInstall_Invoke(t *testing.T) {
 			require.Contains(t, string(envContent), "DB_NAME=test")
 			t.Log("	The modules.json file should be updated with the new 2 modules")
 			require.NoError(t, errCont4)
-			require.Contains(t, string(modulesContent), "github.com/go-modulus/modulus/db/pgx")
+			require.Contains(t, string(modulesContent), "github.com/go-modulus/pgx")
 			require.Contains(t, string(modulesContent), "github.com/go-modulus/modulus/db/migrator")
 		},
 	)

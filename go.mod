@@ -7,6 +7,7 @@ require (
 	github.com/fatih/color v1.18.0
 	github.com/gkampitakis/go-snaps v0.5.19
 	github.com/go-modulus/modulus v0.5.0-rc.2
+	github.com/go-modulus/pgx v0.1.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/laher/mergefs v0.1.1
 	github.com/manifoldco/promptui v0.9.0

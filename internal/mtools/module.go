@@ -2,13 +2,13 @@ package mtools
 
 import (
 	"github.com/go-modulus/modulus/cli"
-	"github.com/go-modulus/modulus/db/pgx"
 	"github.com/go-modulus/modulus/logger"
 	"github.com/go-modulus/modulus/module"
 	"github.com/go-modulus/mtools/internal/mtools/action"
 	cmdRoot "github.com/go-modulus/mtools/internal/mtools/cli"
 	cmdDb "github.com/go-modulus/mtools/internal/mtools/cli/db"
 	cmdModule "github.com/go-modulus/mtools/internal/mtools/cli/module"
+	"github.com/go-modulus/pgx"
 )
 
 func NewModule() *module.Module {
