@@ -31,6 +31,7 @@ func NewModule() *module.Module {
 			cmdDb.NewMigrate,
 			cmdDb.NewRollback,
 			cmdDb.NewGenerate,
+			NewCliErrorHandler,
 		).
 		AddDependencies(
 			logger.NewModule(),

@@ -3,6 +3,7 @@ package module
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"html/template"
 	"log/slog"
@@ -12,6 +13,8 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/go-modulus/modulus/errors"
+	"github.com/go-modulus/modulus/errors/errsys"
+	"github.com/go-modulus/modulus/errors/errtrace"
 	"github.com/go-modulus/modulus/module"
 	"github.com/go-modulus/mtools/internal/manifesto"
 	"github.com/go-modulus/mtools/internal/mtools/action"
@@ -19,11 +22,18 @@ import (
 	"github.com/go-modulus/mtools/internal/mtools/templates"
 	"github.com/go-modulus/mtools/internal/mtools/utils"
 	"github.com/manifoldco/promptui"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 var moduleNameRegexp = regexp.MustCompile(`module\s+([a-zA-Z0-9_\-\/\.]+)+`)
 var pckgNameRegexp = regexp.MustCompile(`^[a-z]+[a-z0-9]+`)
+
+var (
+	ErrCannotGetLocalManifest  = errsys.New("cannot get a local manifest", "Cannot get a local manifesto")
+	ErrCannotSaveLocalManifest = errsys.New("cannot save a local manifest", "Cannot save a local manifesto")
+	ErrCannotCreateDirectory   = errsys.New("cannot create a directory", "Cannot create a directory")
+	ErrCannotCreateModuleFile  = errsys.New("cannot create a module file", "Cannot create a module file")
+)
 
 type features struct {
 	storage bool
@@ -88,16 +98,22 @@ Example filling default values without UI: mtools module create --package=mypckg
 }
 
 func (c *Create) Invoke(
-	ctx *cli.Context,
+	ctx context.Context,
+	cmd *cli.Command,
 ) (err error) {
-	if !ctx.Bool("silent") {
+	if !cmd.Bool("silent") {
 		utils.PrintLogo()
 	}
-	projPath := ctx.String("proj-path")
+	projPath := cmd.String("proj-path")
 
 	fmt.Println(color.BlueString("Creating a new module..."))
 
-	manifestItem, err := c.getManifestItem(ctx, projPath)
+	manifest, err := manifesto.LoadLocalManifesto(projPath)
+	if err != nil {
+		return errors.WithCause(ErrCannotGetLocalManifest, err)
+	}
+
+	manifestItem, err := c.getManifestItem(cmd, projPath)
 	if err != nil {
 		return err
 	}
@@ -109,15 +125,35 @@ func (c *Create) Invoke(
 
 	err = os.MkdirAll(projPath+"/"+manifestItem.LocalPath, 0755)
 	if err != nil {
-		fmt.Println(color.RedString("Cannot create a directory %s: %s", manifestItem.LocalPath, err.Error()))
-		return err
+		return errtrace.Wrap(
+			errors.WithMeta(
+				errors.WithCause(ErrCannotCreateDirectory, err),
+				"path", manifestItem.LocalPath,
+			),
+		)
 	}
 
-	selectedFeatures := c.getFeatures(ctx)
+	selectedFeatures := c.getFeatures(cmd)
 
 	if selectedFeatures.storage {
 		fmt.Println(color.BlueString("Installing the storage feature..."))
-		err = c.installStorageFeature(ctx, manifestItem, projPath)
+		containsMigrator := slices.ContainsFunc(
+			manifest.Modules, func(val module.Manifesto) bool {
+				return val.Package == "github.com/go-modulus/pgx/migrator"
+			},
+		)
+		if !containsMigrator {
+			fmt.Println(color.YellowString("The 'modulus/pgx/migrator' module is not installed. Please install it to use storage feature."))
+		}
+		containsPgx := slices.ContainsFunc(
+			manifest.Modules, func(val module.Manifesto) bool {
+				return val.Package == "github.com/go-modulus/pgx"
+			},
+		)
+		if !containsPgx {
+			fmt.Println(color.YellowString("The 'modulus/pgx' module is not installed. Please install it to use storage feature."))
+		}
+		err = c.installStorageFeature(ctx, cmd, manifestItem, projPath)
 		if err != nil {
 			return err
 		}
@@ -148,8 +184,7 @@ func (c *Create) updateEntripoints(
 
 	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	if err != nil {
-		fmt.Println(color.RedString("Cannot get a local manifest: %s", err.Error()))
-		return err
+		return errors.WithTrace(errsys.WithCause(ErrCannotGetLocalManifest, err))
 	}
 	for _, entry := range manifest.Entries {
 		err = files.AddModuleToEntrypoint(md.Package, projPath+"/"+entry.LocalPath)
@@ -170,7 +205,8 @@ func (c *Create) updateEntripoints(
 }
 
 func (c *Create) installStorageFeature(
-	ctx *cli.Context,
+	ctx context.Context,
+	cmd *cli.Command,
 	md module.Manifesto,
 	projPath string,
 ) error {
@@ -181,7 +217,7 @@ func (c *Create) installStorageFeature(
 		GenerateDataloader: true,
 		ProjPath:           projPath,
 	}
-	if !ctx.Bool("silent") {
+	if !cmd.Bool("silent") {
 		schema, err := c.askSchema(cfg.Schema)
 		if err != nil {
 			return err
@@ -201,15 +237,17 @@ func (c *Create) installStorageFeature(
 			return err
 		}
 	}
-	return c.installStorage.Install(ctx.Context, md, cfg)
+	return c.installStorage.Install(ctx, md, cfg)
 }
 
-func (c *Create) getFeatures(ctx *cli.Context) (res features) {
+func (c *Create) getFeatures(
+	cmd *cli.Command,
+) (res features) {
 	res = features{
 		storage: true,
 		graphQL: true,
 	}
-	without := ctx.StringSlice("without")
+	without := cmd.StringSlice("without")
 	type feature struct {
 		name        string
 		description string
@@ -247,7 +285,7 @@ func (c *Create) getFeatures(ctx *cli.Context) (res features) {
 			)
 		}
 	}
-	if len(items) != 0 && !ctx.Bool("silent") {
+	if len(items) != 0 && !cmd.Bool("silent") {
 		for _, item := range items {
 			val, err := c.askYesNo("Do you want to install the " + item.name + " feature?")
 			if err != nil {
@@ -276,8 +314,7 @@ func (c *Create) askYesNo(label string) (bool, error) {
 	}
 	_, result, err := sel.Run()
 	if err != nil {
-		fmt.Println(color.RedString("Cannot ask a question: %s", err.Error()))
-		return false, err
+		return false, errors.WithCause(errors.NewWithHint("cannot ask a question", "Cannot ask a question"), err)
 	}
 
 	return result == "Yes", nil
@@ -311,10 +348,16 @@ func (c *Create) addModuleFile(
 		return err
 	}
 
-	err = os.WriteFile(md.ModulePath(projPath)+"/module.go", b.Bytes(), 0644)
+	moduleFIlename := md.ModulePath(projPath) + "/module.go"
+	err = os.WriteFile(moduleFIlename, b.Bytes(), 0644)
 	if err != nil {
-		fmt.Println(color.RedString("Cannot write a module file: %s", err.Error()))
-		return err
+		return errors.WithTrace(
+			errors.WithMeta(
+				errsys.WithCause(ErrCannotCreateModuleFile, err),
+				"filename",
+				moduleFIlename,
+			),
+		)
 	}
 	return nil
 }
@@ -322,13 +365,19 @@ func (c *Create) addModuleFile(
 func (c *Create) saveManifestItem(manifestItem module.Manifesto, projPath string) (err error) {
 	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	if err != nil {
-		fmt.Println(color.RedString("Cannot get a local manifest: %s", err.Error()))
-		return err
+		return errors.WithTrace(
+			errors.WithMeta(
+				errors.WithCause(ErrCannotGetLocalManifest, err),
+				"path", projPath,
+			),
+		)
 	}
 	for _, item := range manifest.Modules {
 		if item.Package == manifestItem.Package {
-			fmt.Println(color.YellowString("The module %s is already installed", item.Name))
-			return errors.New("the module is already installed")
+			return errors.NewWithHint(
+				"the module is already installed",
+				fmt.Sprintf("The module %s is already installed", item.Name),
+			)
 		}
 	}
 	manifest.Modules = append(
@@ -336,67 +385,84 @@ func (c *Create) saveManifestItem(manifestItem module.Manifesto, projPath string
 	)
 	err = manifest.SaveAsLocalManifest(projPath)
 	if err != nil {
-		fmt.Println(color.RedString("Cannot save a local manifest: %s", err.Error()))
-		return err
+		return errors.WithTrace(errors.WithCause(ErrCannotSaveLocalManifest, err))
 	}
 	return nil
 }
 
 func (c *Create) getProjModuleName(projPath string) (string, error) {
 	if _, err := os.Stat(projPath + "/go.mod"); os.IsNotExist(err) {
-		fmt.Println(color.RedString("The go.mod file is not found. Try to run the command in the root of the project"))
-		return "", err
+		return "", errors.WithCause(
+			errors.NewWithHint(
+				"go.mod not found",
+				"The "+projPath+"/go.mod file is not found. Try to run the command in the root of the project",
+			),
+			err,
+		)
 	}
 	content, err := os.ReadFile(projPath + "/go.mod")
 	if err != nil {
-		fmt.Println(color.RedString("Cannot read a go.mod file: %s", err.Error()))
-		return "", err
+		return "", errors.WithCause(
+			errors.NewWithHint("cannot read a go.mod file", "Cannot read a "+projPath+"/go.mod file"),
+			err,
+		)
 	}
 
 	moduleStr := moduleNameRegexp.FindStringSubmatch(string(content))
 	if len(moduleStr) < 2 {
-		fmt.Println(color.RedString("Cannot find a module name in the go.mod file"))
-		return "", errors.New("cannot find a module name in the go.mod file")
+		return "", errors.NewWithHint(
+			"cannot find a module name in the go.mod file",
+			fmt.Sprintf("Cannot find a module name in the %s/go.mod file in the ", projPath),
+		)
 	}
 
 	return moduleStr[1], nil
 }
 
-func (c *Create) getManifestItem(ctx *cli.Context, projPath string) (
+func (c *Create) getManifestItem(
+	cmd *cli.Command,
+	projPath string,
+) (
 	res module.Manifesto,
 	err error,
 ) {
-	isSilent := ctx.Bool("silent")
-	pckg := ctx.String("package")
+	isSilent := cmd.Bool("silent")
+	pckg := cmd.String("package")
 	if pckg == "" {
 		if isSilent {
-			fmt.Println(color.RedString("The package name is not provided. Please add the --package flag or remove the --silent=true flag"))
-			return module.Manifesto{}, errors.New("the package name is not provided")
+			return module.Manifesto{}, errors.NewWithHint(
+				"the package name is not provided",
+				"The package name is not provided. Please add the --package flag or remove the --silent=true flag",
+			)
 		}
 		pckg, err = c.askPackage()
 		if err != nil {
-			fmt.Println(color.RedString("Cannot ask a package name: %s", err.Error()))
-			return module.Manifesto{}, err
+			return module.Manifesto{}, errors.WithCause(
+				errors.New(
+					"Cannot get a package name",
+				), err,
+			)
 		}
 	} else {
 		if !pckgNameRegexp.MatchString(pckg) {
-			fmt.Println(
-				color.RedString(
-					"The package name %s is not valid. Please use lowercase latin symbols without spaces",
-					pckg,
-				),
+			hint := fmt.Sprintf(
+				"The package name %s is not valid. Please use lowercase latin symbols without spaces",
+				pckg,
 			)
-			return module.Manifesto{}, errors.New("the package name is not valid")
+			return module.Manifesto{}, errors.NewWithHint("the package name is not valid", hint)
 		}
 	}
 
-	name := ctx.String("name")
+	name := cmd.String("name")
 	if name == "" {
 		if !isSilent {
 			name, err = c.askName(pckg)
 			if err != nil {
-				fmt.Println(color.RedString("Cannot ask a name: %s", err.Error()))
-				return module.Manifesto{}, err
+				return module.Manifesto{}, errors.WithCause(
+					errors.New(
+						"Cannot get a name of the module",
+					), err,
+				)
 			}
 		} else {
 			// If we are in a silence mode, we need to get a name from the package
@@ -404,13 +470,16 @@ func (c *Create) getManifestItem(ctx *cli.Context, projPath string) (
 		}
 	}
 
-	path := ctx.String("path")
+	path := cmd.String("path")
 	if path == "" {
 		if !isSilent {
 			path, err = c.askPath(projPath, pckg)
 			if err != nil {
-				fmt.Println(color.RedString("Cannot ask a path: %s", err.Error()))
-				return module.Manifesto{}, err
+				return module.Manifesto{}, errors.WithCause(
+					errors.New(
+						"Cannot get a path to the module",
+					), err,
+				)
 			}
 		} else {
 			path = c.getDefaultPath(pckg)

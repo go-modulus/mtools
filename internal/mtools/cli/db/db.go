@@ -2,21 +2,24 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"io/fs"
 	"net/url"
 	"os"
+	"path/filepath"
 
 	"github.com/amacneil/dbmate/v2/pkg/dbmate"
-	"github.com/fatih/color"
 	"github.com/go-modulus/modulus/config"
+	"github.com/go-modulus/modulus/errors"
+	"github.com/go-modulus/modulus/errors/errsys"
 	"github.com/go-modulus/modulus/errors/errtrace"
 	"github.com/go-modulus/mtools/internal/manifesto"
 	"github.com/go-modulus/pgx"
 	"github.com/laher/mergefs"
 	"github.com/sethvargo/go-envconfig"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
+
+var ErrCannotLoadManifest = errsys.New("cannot load manifesto", "Cannot load a project manifesto file")
 
 func newDBMate(
 	config pgx.ModuleConfig,
@@ -46,18 +49,18 @@ func newPgxConfig(projPath string) (pgx.ModuleConfig, error) {
 	return cfg, nil
 }
 
-func commonMigrationFs(projPath string, manifestFile string) (fs.FS, error) {
+func commonMigrationFs(projPath string, manifestFile string) (fs.FS, map[string]string, error) {
 	projFs := os.DirFS(projPath)
 	if manifestFile == "" {
 		manifestFile = "modules.json"
 	}
 	manifest, err := manifesto.NewFromFs(projFs, manifestFile)
 	if err != nil {
-		fmt.Println(color.RedString("Cannot load the project manifest %s/modules.json: %s", projPath, err.Error()))
-		return nil, errtrace.Wrap(err)
+		return nil, nil, errtrace.Wrap(errors.WithMeta(errors.WithCause(ErrCannotLoadManifest, err), "path", projPath))
 	}
 
 	modulesFs := make([]fs.FS, 0)
+	fileNamesMap := make(map[string]string)
 
 	for _, md := range manifest.Modules {
 		if md.LocalPath == "" {
@@ -68,10 +71,21 @@ func commonMigrationFs(projPath string, manifestFile string) (fs.FS, error) {
 		if _, err := os.Stat(storagePath); os.IsNotExist(err) {
 			continue
 		}
-		modulesFs = append(modulesFs, os.DirFS(storagePath))
+		localFS := os.DirFS(storagePath)
+		modulesFs = append(modulesFs, localFS)
+		_ = fs.WalkDir(
+			localFS, ".", func(path string, d fs.DirEntry, err error) error {
+				if err != nil || d.IsDir() {
+					return err
+				}
+				dir := filepath.Dir(path)
+				fileNamesMap[filepath.Base(path)] = storagePath + "/" + dir
+				return nil
+			},
+		)
 	}
 
-	return mergefs.Merge(modulesFs...), nil
+	return mergefs.Merge(modulesFs...), fileNamesMap, nil
 }
 
 func NewDbCommand(
@@ -86,7 +100,7 @@ func NewDbCommand(
 		Usage: `A set of commands for working with PostgreSQL database in modules.
 Example: mtools db
 `,
-		Subcommands: []*cli.Command{
+		Commands: []*cli.Command{
 			NewUpdateSQLCConfigCommand(updateSqlc),
 			NewAddCommand(add),
 			NewMigrateCommand(migrate),

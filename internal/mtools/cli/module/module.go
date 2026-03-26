@@ -1,6 +1,6 @@
 package module
 
-import "github.com/urfave/cli/v2"
+import "github.com/urfave/cli/v3"
 
 func NewModuleCommand(
 	create *Create,
@@ -13,7 +13,7 @@ func NewModuleCommand(
 		Usage: `A set of commands for modules manipulations.
 Example: mtools module
 `,
-		Subcommands: []*cli.Command{
+		Commands: []*cli.Command{
 			NewCreateCommand(create),
 			NewInstallCommand(install),
 			NewAddCliCommand(addCli),

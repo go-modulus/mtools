@@ -1,13 +1,14 @@
 package module_test
 
 import (
-	"flag"
+	"context"
 	"fmt"
 	"os"
 	"testing"
 
+	"github.com/go-modulus/mtools/internal/mtools/cli/flag"
+	"github.com/go-modulus/mtools/internal/mtools/cli/module"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 const localModulesJson = `{
@@ -223,13 +224,13 @@ func TestInstall_Invoke(t *testing.T) {
 
 			err := os.Chdir(projDir)
 			require.NoError(t, err)
-			app := cli.NewApp()
-			set := flag.NewFlagSet("test", 0)
-			set.Var(cli.NewStringSlice("pgx"), "modules", "doc")
 			_ = os.Chdir(projDir)
-			set.String("manifest", "manifest/modules.json", "doc")
-			ctx := cli.NewContext(app, set, nil)
-			err = installModule.Invoke(ctx)
+			cmd := module.NewInstallCommand(installModule)
+			cmd.Flags = append(cmd.Flags, flag.NewProjPath(projDir))
+			err = cmd.Run(
+				context.Background(),
+				[]string{"install", "--modules", "pgx", "--manifest", "manifest/modules.json"},
+			)
 
 			entrypointFileContent, errCont2 := os.ReadFile(fmt.Sprintf("%s/cmd/console/main.go", projDir))
 			envContent, errCont3 := os.ReadFile(fmt.Sprintf("%s/.env", projDir))
@@ -264,12 +265,12 @@ func TestInstall_Invoke(t *testing.T) {
 
 			err := os.Chdir(projDir)
 			require.NoError(t, err)
-			app := cli.NewApp()
-			set := flag.NewFlagSet("test", 0)
-			set.Var(cli.NewStringSlice("dbmate migrator"), "modules", "doc")
-			set.String("manifest", projDir+"/manifest/modules.json", "doc")
-			ctx := cli.NewContext(app, set, nil)
-			err = installModule.Invoke(ctx)
+			cmd := module.NewInstallCommand(installModule)
+			cmd.Flags = append(cmd.Flags, flag.NewProjPath(projDir))
+			err = cmd.Run(
+				context.Background(),
+				[]string{"install", "--modules", "dbmate migrator", "--manifest", projDir + "/manifest/modules.json"},
+			)
 
 			entrypointFileContent, errCont2 := os.ReadFile(fmt.Sprintf("%s/cmd/console/main.go", projDir))
 			envContent, errCont3 := os.ReadFile(fmt.Sprintf("%s/.env", projDir))
@@ -301,12 +302,12 @@ func TestInstall_Invoke(t *testing.T) {
 
 			err := os.Chdir(projDir)
 			require.NoError(t, err)
-			app := cli.NewApp()
-			set := flag.NewFlagSet("test", 0)
-			set.Var(cli.NewStringSlice("gqlgen"), "modules", "doc")
-			set.String("manifest", projDir+"/manifest/modules.json", "doc")
-			ctx := cli.NewContext(app, set, nil)
-			err = installModule.Invoke(ctx)
+			cmd := module.NewInstallCommand(installModule)
+			cmd.Flags = append(cmd.Flags, flag.NewProjPath(projDir))
+			err = cmd.Run(
+				context.Background(),
+				[]string{"install", "--modules", "gqlgen", "--manifest", projDir + "/manifest/modules.json"},
+			)
 
 			entrypointFileContent, errCont2 := os.ReadFile(fmt.Sprintf("%s/cmd/console/main.go", projDir))
 

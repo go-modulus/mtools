@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 
@@ -8,7 +9,7 @@ import (
 	"github.com/go-modulus/mtools/internal/manifesto"
 	"github.com/go-modulus/mtools/internal/mtools/action"
 	"github.com/go-modulus/mtools/internal/mtools/utils"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 type Generate struct {
@@ -31,8 +32,11 @@ Example: mtools db generate
 	}
 }
 
-func (c *Generate) Invoke(ctx *cli.Context) error {
-	projPath := ctx.String("proj-path")
+func (c *Generate) Invoke(
+	ctx context.Context,
+	cmd *cli.Command,
+) error {
+	projPath := cmd.String("proj-path")
 	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	fmt.Println(
 		"Generating DTO and DAO files for the project at",
@@ -54,7 +58,7 @@ func (c *Generate) Invoke(ctx *cli.Context) error {
 		}
 		fmt.Println("Generate DTO and DAO files for the", color.BlueString(md.Name), "module")
 		fmt.Printf("Running %s ...\n", color.BlueString("sqlc -f "+sqlcFile+" generate"))
-		cmd := exec.CommandContext(ctx.Context, "sqlc", "-f", sqlcFile, "generate")
+		cmd := exec.CommandContext(ctx, "sqlc", "-f", sqlcFile, "generate")
 		_, err := cmd.Output()
 		if err != nil {
 			if ee, ok := err.(*exec.ExitError); ok {

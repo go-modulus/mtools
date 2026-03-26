@@ -10,7 +10,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/go-modulus/mtools/internal/manifesto"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func NewManifest(usage string) cli.Flag {
@@ -23,8 +23,8 @@ func NewManifest(usage string) cli.Flag {
 	}
 }
 
-func ManifestValue(ctx *cli.Context) (*manifesto.LocalManifesto, error) {
-	manifestPath := ctx.String("manifest")
+func ManifestValue(cmd *cli.Command) (*manifesto.LocalManifesto, error) {
+	manifestPath := cmd.String("manifest")
 	if manifestPath == "" {
 		return manifestFromURL("https://raw.githubusercontent.com/go-modulus/registry/refs/heads/main/modules.json")
 	}

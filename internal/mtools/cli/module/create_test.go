@@ -1,15 +1,16 @@
 package module_test
 
 import (
-	"flag"
+	"context"
 	"fmt"
 	"os"
 	"testing"
 
 	"github.com/go-modulus/modulus/module"
 	"github.com/go-modulus/mtools/internal/manifesto"
+	"github.com/go-modulus/mtools/internal/mtools/cli/flag"
+	module2 "github.com/go-modulus/mtools/internal/mtools/cli/module"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestCreateModule_Invoke(t *testing.T) {
@@ -19,14 +20,12 @@ func TestCreateModule_Invoke(t *testing.T) {
 			rb := initProject(t, projDir, goModFile)
 			defer rb()
 
-			app := cli.NewApp()
-			set := flag.NewFlagSet("test", 0)
-			set.String("package", "mypckg", "")
-			set.String("path", "internal", "")
-			set.String("proj-path", projDir, "")
-			set.Bool("silent", true, "")
-			ctx := cli.NewContext(app, set, nil)
-			err := createModule.Invoke(ctx)
+			cmd := module2.NewCreateCommand(createModule)
+			cmd.Flags = append(cmd.Flags, flag.NewProjPath(projDir))
+			err := cmd.Run(
+				context.Background(),
+				[]string{"create", "--package=mypckg", "--path=internal", "--proj-path=" + projDir, "--silent"},
+			)
 
 			moduleDir := fmt.Sprintf("%s/internal/mypckg", projDir)
 			_, errDir := os.Stat(moduleDir)

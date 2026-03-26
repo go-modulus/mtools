@@ -29,11 +29,11 @@ install: ## Make a binary to ./bin folder
 build-testproject: ## Build the example of a project
 	$(MAKE) install
 	./bin/mtools init --path=./testproj --name=testproj
-	./bin/mtools module install --proj-path=./testproj -m "pgx"
+	./bin/mtools module install --proj-path=./testproj -m "modulus/pgx"
 	./bin/mtools module create --proj-path=./testproj --silent --path=internal --package=example
 	./bin/mtools db add --proj-path=./testproj --module=example --name=create_table
 	echo "-- migrate:up" > ./testproj/internal/example/storage/migration/20241228085104_create_table.sql
-	echo "CREATE TABLE example (" >> ./testproj/internal/example/storage/migration/20241228085104_create_table.sql
+	echo "CREATE TABLE IF NOT EXISTS example (" >> ./testproj/internal/example/storage/migration/20241228085104_create_table.sql
 	echo "	id SERIAL PRIMARY KEY," >> ./testproj/internal/example/storage/migration/20241228085104_create_table.sql
 	echo "	name TEXT NOT NULL" >> ./testproj/internal/example/storage/migration/20241228085104_create_table.sql
 	echo ");" >> ./testproj/internal/example/storage/migration/20241228085104_create_table.sql

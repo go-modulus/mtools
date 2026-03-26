@@ -8,7 +8,7 @@ import (
 	"github.com/go-modulus/modulus/module"
 	"github.com/go-modulus/mtools/internal/manifesto"
 	"github.com/manifoldco/promptui"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func NewModule(usage string) cli.Flag {
@@ -19,10 +19,10 @@ func NewModule(usage string) cli.Flag {
 	}
 }
 
-func ModuleValue(ctx *cli.Context) (module.Manifesto, error) {
-	isSilent := ctx.Bool("silent")
-	moduleName := ctx.String("module")
-	projPath := ctx.String("proj-path")
+func ModuleValue(cmd *cli.Command) (module.Manifesto, error) {
+	isSilent := cmd.Bool("silent")
+	moduleName := cmd.String("module")
+	projPath := cmd.String("proj-path")
 	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	if err != nil {
 		fmt.Printf(

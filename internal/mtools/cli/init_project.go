@@ -11,7 +11,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/go-modulus/mtools/internal/mtools/utils"
 	"github.com/manifoldco/promptui"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 type InitProject struct {
@@ -48,11 +48,12 @@ Example: ./bin/modulus init --path /path/to/project --name my_project
 }
 
 func (c *InitProject) Invoke(
-	ctx *cli.Context,
+	ctx context.Context,
+	cmd *cli.Command,
 ) error {
 	utils.PrintLogo()
 
-	name, path, err := c.getParams(ctx)
+	name, path, err := c.getParams(cmd)
 	if err != nil {
 		fmt.Printf("Error getting the parameters: %s\n", color.RedString(err.Error()))
 		return err
@@ -85,9 +86,11 @@ func (c *InitProject) Invoke(
 	return nil
 }
 
-func (c *InitProject) getParams(ctx *cli.Context) (name, path string, err error) {
-	path = ctx.String("path")
-	name = ctx.String("name")
+func (c *InitProject) getParams(
+	cmd *cli.Command,
+) (name, path string, err error) {
+	path = cmd.String("path")
+	name = cmd.String("name")
 	if name == "" {
 		name, err = c.askName()
 		if err != nil {

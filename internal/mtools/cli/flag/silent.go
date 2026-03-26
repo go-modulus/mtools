@@ -1,7 +1,7 @@
 package flag
 
 import (
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func NewSilent(usage string) cli.Flag {
@@ -12,6 +12,6 @@ func NewSilent(usage string) cli.Flag {
 	}
 }
 
-func SilentValue(ctx *cli.Context) bool {
-	return ctx.Bool("silent")
+func SilentValue(cmd *cli.Command) bool {
+	return cmd.Bool("silent")
 }

@@ -1,13 +1,14 @@
 package db
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"github.com/fatih/color"
 	"github.com/go-modulus/mtools/internal/manifesto"
 	"github.com/go-modulus/mtools/internal/mtools/action"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 type UpdateSQLCConfig struct {
@@ -30,8 +31,11 @@ Example: mtools db update-sqlc-config
 	}
 }
 
-func (c *UpdateSQLCConfig) Invoke(ctx *cli.Context) error {
-	projPath := ctx.String("proj-path")
+func (c *UpdateSQLCConfig) Invoke(
+	ctx context.Context,
+	cmd *cli.Command,
+) error {
+	projPath := cmd.String("proj-path")
 	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	if err != nil {
 		fmt.Println(color.RedString("Cannot load the project manifest %s/modules.json: %s", projPath, err.Error()))
@@ -42,7 +46,7 @@ func (c *UpdateSQLCConfig) Invoke(ctx *cli.Context) error {
 			continue
 		}
 		storagePath := md.StoragePath(projPath)
-		err := c.action.Update(ctx.Context, storagePath, projPath)
+		err := c.action.Update(ctx, storagePath, projPath)
 		if err != nil {
 			if errors.Is(err, action.ErrNoSqlcTmpl) {
 				fmt.Println(

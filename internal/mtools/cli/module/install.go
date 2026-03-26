@@ -23,7 +23,7 @@ import (
 	"github.com/go-modulus/mtools/internal/mtools/files"
 	"github.com/go-modulus/mtools/internal/mtools/utils"
 	"github.com/manifoldco/promptui"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 var ErrPackageIsEmpty = errbuilder.New("package is empty").
@@ -75,18 +75,19 @@ Example: mtools module install --manifest="local_folder/modules.json"`,
 }
 
 func (c *Install) Invoke(
-	ctx *cli.Context,
+	ctx context.Context,
+	cmd *cli.Command,
 ) error {
-	modulesValue := ctx.StringSlice("modules")
+	modulesValue := cmd.StringSlice("modules")
 	if len(modulesValue) == 0 {
 		utils.PrintLogo()
 	}
-	availableModulesManifest, err := flag.ManifestValue(ctx)
+	availableModulesManifest, err := flag.ManifestValue(cmd)
 	if err != nil {
 		fmt.Println(color.RedString("Cannot get the manifest file: %s", err.Error()))
 		return err
 	}
-	projPath := ctx.String("proj-path")
+	projPath := cmd.String("proj-path")
 	if projPath != "" {
 		curDir, err := os.Getwd()
 		if err != nil {
@@ -168,7 +169,7 @@ func (c *Install) Invoke(
 		localModulesMap[md.Package] = struct{}{}
 	}
 	for _, md := range modules {
-		err = c.installModule(ctx.Context, md, entrypoints, projPath)
+		err = c.installModule(ctx, md, entrypoints)
 		if err != nil {
 			fmt.Println(color.RedString("Cannot install the module %s: %s", md.Name, err.Error()))
 			if errors.Hint(err) != "" {
@@ -206,7 +207,6 @@ func (c *Install) installModule(
 	ctx context.Context,
 	md module.Manifesto,
 	entrypoints []entripoint,
-	projPath string,
 ) error {
 
 	if md.Package == "" {

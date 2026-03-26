@@ -1,25 +1,24 @@
 package module_test
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"testing"
 
+	"github.com/go-modulus/mtools/internal/mtools/cli/flag"
+	"github.com/go-modulus/mtools/internal/mtools/cli/module"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
-func createModuleInTmpDir(projDir string) error {
-	app := cli.NewApp()
-	set := flag.NewFlagSet("test", 0)
-	set.String("package", "mypckg", "")
-	set.String("name", "mypckg", "")
-	set.String("path", "internal", "")
-	set.String("proj-path", projDir, "")
-	set.Bool("silent", true, "")
-	ctx := cli.NewContext(app, set, nil)
-	return createModule.Invoke(ctx)
+func createModuleInTmpDir(t *testing.T, projDir string) error {
+	cmd := module.NewCreateCommand(createModule)
+	cmd.Flags = append(cmd.Flags, flag.NewProjPath(projDir))
+
+	return cmd.Run(
+		t.Context(), []string{
+			"create", "--package=mypckg", "--name=mypckg", "--path=internal", "--proj-path=" + projDir, "--silent",
+		},
+	)
 }
 
 func TestAddJsonApi_Invoke(t *testing.T) {
@@ -29,20 +28,23 @@ func TestAddJsonApi_Invoke(t *testing.T) {
 			rb := initProject(t, projDir, goModFile)
 			defer rb()
 
-			err := createModuleInTmpDir(projDir)
+			err := createModuleInTmpDir(t, projDir)
 			require.NoError(t, err)
 
-			app := cli.NewApp()
-			set := flag.NewFlagSet("test", 0)
-			set.String("name", "HelloWorld", "")
-			set.String("uri", "/mypckg/hello-world", "")
-			set.String("method", "GET", "")
-			set.String("module", "mypckg", "")
-			set.String("proj-path", projDir, "")
-			set.Bool("silent", true, "")
-			ctx := cli.NewContext(app, set, nil)
-
-			err = addJsonApi.Invoke(ctx)
+			cmd := module.NewAddJsonApiCommand(addJsonApi)
+			cmd.Flags = append(cmd.Flags, flag.NewProjPath(projDir))
+			err = cmd.Run(
+				t.Context(),
+				[]string{
+					"add-json-api",
+					"--name=HelloWorld",
+					"--uri=/mypckg/hello-world",
+					"--method=GET",
+					"--module=mypckg",
+					"--proj-path=" + projDir,
+					"--silent",
+				},
+			)
 
 			apiDir := fmt.Sprintf("%s/internal/mypckg/api", projDir)
 			_, errDir := os.Stat(apiDir)

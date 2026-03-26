@@ -1,6 +1,7 @@
 package module
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -13,7 +14,7 @@ import (
 	"github.com/go-modulus/mtools/internal/mtools/utils"
 	"github.com/iancoleman/strcase"
 	"github.com/manifoldco/promptui"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 var apiHandlerNameRegEx = regexp.MustCompile(`^[A-Z]+[a-zA-Z0-9_]*$`)
@@ -65,15 +66,18 @@ Example: mtools module add-json-api --module=example --uri=/hello-world --name=H
 	}
 }
 
-func (a *AddJsonApi) Invoke(ctx *cli.Context) error {
-	mod, err := flag.ModuleValue(ctx)
+func (a *AddJsonApi) Invoke(
+	ctx context.Context,
+	cmd *cli.Command,
+) error {
+	mod, err := flag.ModuleValue(cmd)
 	if err != nil {
 		return nil
 	}
-	isSilent := flag.SilentValue(ctx)
-	projPath := flag.ProjPathValue(ctx)
+	isSilent := flag.SilentValue(cmd)
+	projPath := flag.ProjPathValue(cmd)
 
-	name := ctx.String("name")
+	name := cmd.String("name")
 	if name == "" {
 		if isSilent {
 			fmt.Println(color.RedString("The API handler name is required"))
@@ -85,7 +89,7 @@ func (a *AddJsonApi) Invoke(ctx *cli.Context) error {
 		}
 	}
 
-	method := ctx.String("method")
+	method := cmd.String("method")
 	if method == "" {
 		if isSilent {
 			method = http.MethodGet
@@ -105,7 +109,7 @@ func (a *AddJsonApi) Invoke(ctx *cli.Context) error {
 
 	structName := strcase.ToCamel(name)
 
-	uri := ctx.String("uri")
+	uri := cmd.String("uri")
 	if uri == "" {
 		if isSilent {
 			fmt.Println(color.RedString("The API handler URI is required"))

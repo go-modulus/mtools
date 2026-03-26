@@ -6,10 +6,9 @@ import (
 	"github.com/go-modulus/modulus/module"
 	{{ if .HasStorage -}}
 	"embed"
-	"io/fs"
 	"github.com/go-modulus/pgx"
+	"github.com/go-modulus/pgx/migrator"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"go.uber.org/fx"
 	"{{.Module.StoragePackage}}"
 	{{- end}}
 )
@@ -41,7 +40,7 @@ func NewModule() *module.Module {
 			func(db storage.DBTX) *storage.Queries {
 				return storage.New(db)
 			},
-			fx.Annotate(func() fs.FS { return migrationFS }, fx.ResultTags(`group:"migrator.migration-fs"`)),
+			migrator.ProvideMigrationFS(migrationFS),
 		{{- end}}
 		).
 		// Add all your CLI commands here

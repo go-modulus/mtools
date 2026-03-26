@@ -1,9 +1,12 @@
 package db
 
 import (
+	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	_ "github.com/amacneil/dbmate/v2/pkg/driver/postgres"
 	"github.com/fatih/color"
@@ -12,7 +15,7 @@ import (
 	"github.com/go-modulus/mtools/internal/manifesto"
 	"github.com/go-modulus/mtools/internal/mtools/action"
 	"github.com/manifoldco/promptui"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 type Add struct {
@@ -27,14 +30,14 @@ func NewAdd(
 	}
 }
 
-func NewAddCommand(updateSqlc *Add) *cli.Command {
+func NewAddCommand(dbAdd *Add) *cli.Command {
 	return &cli.Command{
 		Name: "add",
 		Usage: `Adds a migration to the storage/migration folder of the selected module.
 Example: mtools db add
 Example: mtools db add --proj-path=/path/to/project/root --module=example --name=create_table
 `,
-		Action: updateSqlc.Invoke,
+		Action: dbAdd.Invoke,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "module",
@@ -48,14 +51,17 @@ Example: mtools db add --proj-path=/path/to/project/root --module=example --name
 	}
 }
 
-func (c *Add) Invoke(ctx *cli.Context) error {
-	projPath := ctx.String("proj-path")
+func (c *Add) Invoke(
+	ctx context.Context,
+	cmd *cli.Command,
+) error {
+	projPath := cmd.String("proj-path")
 	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	if err != nil {
 		fmt.Println(color.RedString("Cannot load the project manifest %s/modules.json: %s", projPath, err.Error()))
 		return err
 	}
-	moduleName := ctx.String("module")
+	moduleName := cmd.String("module")
 	if moduleName == "" {
 		moduleName = c.askModuleName(manifest.Modules)
 		if moduleName == "" {
@@ -63,7 +69,7 @@ func (c *Add) Invoke(ctx *cli.Context) error {
 		}
 	}
 
-	migrationName := ctx.String("name")
+	migrationName := cmd.String("name")
 	if migrationName == "" {
 		migrationName = c.askMigrationName()
 		if migrationName == "" {
@@ -89,14 +95,27 @@ func (c *Add) Invoke(ctx *cli.Context) error {
 			return errtrace.Wrap(err)
 		}
 		dbMate := newDBMate(config, migrationFs, []string{storagePath + "/migration"})
+		var logBuf bytes.Buffer
+		dbMate.Log = &logBuf
 		err = dbMate.NewMigration(migrationName)
 		if err != nil {
 			return errtrace.Wrap(err)
 		}
 
+		migrationFile := ""
+		if after, ok := strings.CutPrefix(logBuf.String(), "Creating migration: "); ok {
+			migrationFile = strings.TrimSpace(after)
+			if !strings.HasPrefix(migrationFile, "/") {
+				path, _ := os.Getwd()
+				migrationFile = path + "/" + migrationFile
+			}
+			migrationFile = "file://" + migrationFile
+		}
+
 		fmt.Println(
 			color.GreenString(
-				"Migration is created. Fill it with SQL queries.",
+				"Migration %s is created. Fill it with SQL queries.",
+				migrationFile,
 			),
 		)
 	}

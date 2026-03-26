@@ -19,8 +19,8 @@ type Entrypoint struct {
 }
 
 type LocalManifesto struct {
-	Modules []module.Manifesto `json:"modules"`
 	Entries []Entrypoint       `json:"entries,omitempty"`
+	Modules []module.Manifesto `json:"modules"`
 }
 
 func (m *LocalManifesto) ReadFromJSON(data []byte) error {
