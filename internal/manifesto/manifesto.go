@@ -2,16 +2,20 @@ package manifesto
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/fs"
 	"os"
 	"strings"
 
 	"github.com/go-modulus/modulus/errors"
+	"github.com/go-modulus/modulus/errors/errsys"
 	"github.com/go-modulus/modulus/module"
 )
 
-var ErrCannotReadEntries = fmt.Errorf("cannot read entries")
+var ErrCannotReadDefaultEntries = errors.NewWithHint(
+	"cannot read entries",
+	"The application entrypoints are not found in cmd/folder.",
+)
+var ErrCannotGetLocalManifest = errsys.New("cannot get a local manifest", "Cannot get a local manifesto")
 
 type Entrypoint struct {
 	LocalPath string `json:"localPath"`
@@ -84,24 +88,26 @@ func NewFromFs(manifestFs fs.FS, filename string) (*LocalManifesto, error) {
 	return m, nil
 }
 
-func LoadLocalManifesto(projPath string) (*LocalManifesto, error) {
-	entries, err := readEntries(projPath)
-	if err != nil {
-		return nil, errors.WithCause(ErrCannotReadEntries, err)
-	}
-	res := LocalManifesto{
-		Modules: make([]module.Manifesto, 0),
-		Entries: entries,
-	}
-	if fileExists(projPath + "/modules.json") {
+func LoadLocalManifesto(projPath string) (res LocalManifesto, err error) {
+	filePath := projPath + "/modules.json"
+	if fileExists(filePath) {
 		projFs := os.DirFS(projPath)
 		manifest, err := NewFromFs(projFs, "modules.json")
 		if err != nil {
-			return nil, err
+			return res, errors.WithTrace(
+				errors.WithMeta(
+					errors.WithCause(ErrCannotGetLocalManifest, err),
+					"file", filePath,
+				),
+			)
 		}
-		return manifest, nil
+		return *manifest, nil
 	}
-	return &res, nil
+	//entries, err := readEntries(projPath)
+	//if err != nil {
+	//	return nil, errors.WithCause(ErrCannotReadDefaultEntries, err)
+	//}
+	return res, errors.WithTrace(errors.WithMeta(ErrCannotGetLocalManifest, "file", filePath))
 }
 
 func fileExists(filename string) bool {

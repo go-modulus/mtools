@@ -29,7 +29,6 @@ var moduleNameRegexp = regexp.MustCompile(`module\s+([a-zA-Z0-9_\-\/\.]+)+`)
 var pckgNameRegexp = regexp.MustCompile(`^[a-z]+[a-z0-9]+`)
 
 var (
-	ErrCannotGetLocalManifest  = errsys.New("cannot get a local manifest", "Cannot get a local manifesto")
 	ErrCannotSaveLocalManifest = errsys.New("cannot save a local manifest", "Cannot save a local manifesto")
 	ErrCannotCreateDirectory   = errsys.New("cannot create a directory", "Cannot create a directory")
 	ErrCannotCreateModuleFile  = errsys.New("cannot create a module file", "Cannot create a module file")
@@ -110,7 +109,7 @@ func (c *Create) Invoke(
 
 	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	if err != nil {
-		return errors.WithCause(ErrCannotGetLocalManifest, err)
+		return errors.WithTrace(err)
 	}
 
 	manifestItem, err := c.getManifestItem(cmd, projPath)
@@ -184,7 +183,7 @@ func (c *Create) updateEntripoints(
 
 	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	if err != nil {
-		return errors.WithTrace(errsys.WithCause(ErrCannotGetLocalManifest, err))
+		return errors.WithTrace(err)
 	}
 	for _, entry := range manifest.Entries {
 		err = files.AddModuleToEntrypoint(md.Package, projPath+"/"+entry.LocalPath)
@@ -365,12 +364,7 @@ func (c *Create) addModuleFile(
 func (c *Create) saveManifestItem(manifestItem module.Manifesto, projPath string) (err error) {
 	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	if err != nil {
-		return errors.WithTrace(
-			errors.WithMeta(
-				errors.WithCause(ErrCannotGetLocalManifest, err),
-				"path", projPath,
-			),
-		)
+		return errors.WithTrace(err)
 	}
 	for _, item := range manifest.Modules {
 		if item.Package == manifestItem.Package {

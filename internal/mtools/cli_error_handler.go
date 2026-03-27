@@ -20,13 +20,13 @@ func (c *CliErrorHandler) HandleError(err error) {
 	fmt.Println(color.RedString(hint))
 	cause := errors.Cause(err)
 	if cause != nil {
-		fmt.Println("Cause error:", color.RedString(cause.Error()))
+		fmt.Println("  Previous error:", color.RedString(cause.Error()))
 	}
 	meta := errors.Meta(err)
 	if len(meta) > 0 {
-		fmt.Println("Meta info of error:")
+		fmt.Println("  Error Info:")
 		for k, v := range meta {
-			fmt.Println(color.YellowString(k), v)
+			fmt.Println("    ", color.YellowString(k), v)
 		}
 	}
 

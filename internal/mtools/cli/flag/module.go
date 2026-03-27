@@ -25,11 +25,6 @@ func ModuleValue(cmd *cli.Command) (module.Manifesto, error) {
 	projPath := cmd.String("proj-path")
 	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	if err != nil {
-		fmt.Printf(
-			"Cannot load the project manifest %s/modules.json: %s\n",
-			color.BlueString(projPath),
-			color.RedString(err.Error()),
-		)
 		return module.Manifesto{}, err
 	}
 
@@ -38,7 +33,7 @@ func ModuleValue(cmd *cli.Command) (module.Manifesto, error) {
 			fmt.Println(color.RedString("The module name is required. Use the --module flag"))
 			return module.Manifesto{}, errors.New("module name is required")
 		} else {
-			moduleName, err = askModuleName(*manifest)
+			moduleName, err = askModuleName(manifest)
 			if err != nil {
 				return module.Manifesto{}, err
 			}

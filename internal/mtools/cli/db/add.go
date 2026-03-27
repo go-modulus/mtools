@@ -3,13 +3,13 @@ package db
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
 
 	_ "github.com/amacneil/dbmate/v2/pkg/driver/postgres"
 	"github.com/fatih/color"
+	"github.com/go-modulus/modulus/errors"
 	"github.com/go-modulus/modulus/errors/errtrace"
 	"github.com/go-modulus/modulus/module"
 	"github.com/go-modulus/mtools/internal/manifesto"
@@ -58,14 +58,16 @@ func (c *Add) Invoke(
 	projPath := cmd.String("proj-path")
 	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	if err != nil {
-		fmt.Println(color.RedString("Cannot load the project manifest %s/modules.json: %s", projPath, err.Error()))
-		return err
+		return errors.WithTrace(err)
 	}
 	moduleName := cmd.String("module")
 	if moduleName == "" {
 		moduleName = c.askModuleName(manifest.Modules)
 		if moduleName == "" {
-			return errors.New("module name is empty")
+			return errors.NewWithHint(
+				"module name is empty",
+				"Please specify a module name in the CLI or in the --module flag",
+			)
 		}
 	}
 
@@ -73,7 +75,10 @@ func (c *Add) Invoke(
 	if migrationName == "" {
 		migrationName = c.askMigrationName()
 		if migrationName == "" {
-			return errors.New("migration name is empty")
+			return errors.NewWithHint(
+				"migration name is empty",
+				"Please specify a migration name in the CLI or in the --name flag",
+			)
 		}
 	}
 

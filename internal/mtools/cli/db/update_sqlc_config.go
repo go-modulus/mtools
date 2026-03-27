@@ -2,10 +2,10 @@ package db
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/fatih/color"
+	"github.com/go-modulus/modulus/errors"
 	"github.com/go-modulus/mtools/internal/manifesto"
 	"github.com/go-modulus/mtools/internal/mtools/action"
 	"github.com/urfave/cli/v3"
@@ -38,8 +38,7 @@ func (c *UpdateSQLCConfig) Invoke(
 	projPath := cmd.String("proj-path")
 	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	if err != nil {
-		fmt.Println(color.RedString("Cannot load the project manifest %s/modules.json: %s", projPath, err.Error()))
-		return err
+		return errors.WithTrace(err)
 	}
 	for _, md := range manifest.Modules {
 		if !md.IsLocalModule {

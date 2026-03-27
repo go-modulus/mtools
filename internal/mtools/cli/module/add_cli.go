@@ -54,7 +54,7 @@ func (a *AddCli) Invoke(
 ) error {
 	mod, err := flag.ModuleValue(cmd)
 	if err != nil {
-		return nil
+		return err
 	}
 	isSilent := flag.SilentValue(cmd)
 	projPath := flag.ProjPathValue(cmd)

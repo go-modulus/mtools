@@ -106,8 +106,7 @@ func (c *Install) Invoke(
 
 	manifest, err := c.getLocalManifest()
 	if err != nil {
-		fmt.Println(color.RedString("Cannot get the local modules.json manifest file: %s", err.Error()))
-		return err
+		return errors.WithTrace(err)
 	}
 
 	fmt.Println("Installed modules:")
@@ -199,7 +198,7 @@ func (c *Install) Invoke(
 	return nil
 }
 
-func (c *Install) getLocalManifest() (*manifesto.LocalManifesto, error) {
+func (c *Install) getLocalManifest() (manifesto.LocalManifesto, error) {
 	return manifesto.LoadLocalManifesto(".")
 }
 

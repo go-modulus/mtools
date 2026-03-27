@@ -6,6 +6,7 @@ import (
 	"os/exec"
 
 	"github.com/fatih/color"
+	"github.com/go-modulus/modulus/errors"
 	"github.com/go-modulus/mtools/internal/manifesto"
 	"github.com/go-modulus/mtools/internal/mtools/action"
 	"github.com/go-modulus/mtools/internal/mtools/utils"
@@ -37,14 +38,13 @@ func (c *Generate) Invoke(
 	cmd *cli.Command,
 ) error {
 	projPath := cmd.String("proj-path")
-	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	fmt.Println(
 		"Generating DTO and DAO files for the project at",
 		color.BlueString(projPath),
 	)
+	manifest, err := manifesto.LoadLocalManifesto(projPath)
 	if err != nil {
-		fmt.Println(color.RedString("Cannot load the project manifest %s/modules.json: %s", projPath, err.Error()))
-		return err
+		return errors.WithTrace(err)
 	}
 	for _, md := range manifest.Modules {
 		if !md.IsLocalModule {
