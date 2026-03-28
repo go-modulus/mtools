@@ -44,11 +44,11 @@ build-testproject: ## Build the example of a project
 	./bin/mtools db update-sqlc-config --proj-path=./testproj
 	./bin/mtools db generate --proj-path=./testproj
 	./bin/mtools db migrate --proj-path=./testproj
-	./bin/mtools module install --proj-path=./testproj -m "dbmate migrator"
+	./bin/mtools module install --proj-path=./testproj -m "modulus/pgx/migrator"
 	cd ./testproj && go run cmd/console/main.go migrator migrate
 	./bin/mtools module add-cli --proj-path=./testproj --module=example --name=hello-world
 	cd ./testproj && go run cmd/console/main.go hello-world
-	./bin/mtools module install --proj-path=./testproj -m "chi http"
+	./bin/mtools module install --proj-path=./testproj -m "http"
 	./bin/mtools module add-json-api --proj-path=./testproj --module=example --uri=/hello-world --name=HelloWorld --method=GET --silent
 	./bin/mtools module install --proj-path=./testproj -m "gqlgen"
 

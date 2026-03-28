@@ -12,6 +12,36 @@
       "description": "Adds ability to create cli applications in the Modulus framework.",
       "install": {},
       "version": "1.0.0"
+    },
+    {
+      "name": "logger",
+      "package": "github.com/go-modulus/modulus/logger",
+      "description": "Slog logger with a zap backend for the Modulus framework.",
+      "install": {
+        "envVars": [
+          {
+            "key": "LOGGER_APP",
+            "value": "app",
+            "comment": ""
+          },
+          {
+            "key": "LOGGER_FX_EVENT_LEVEL",
+            "value": "info",
+            "comment": "Use one of \"debug\", \"info\", \"warn\", \"error\". It sets the minimum level of the fx events that should be logged"
+          },
+          {
+            "key": "LOGGER_LEVEL",
+            "value": "debug",
+            "comment": "Use one of \"debug\", \"info\", \"warn\", \"error\". It sets the minimum level of the log messages that should be logged"
+          },
+          {
+            "key": "LOGGER_TYPE",
+            "value": "console",
+            "comment": "Use either \"console\" or \"json\" value"
+          }
+        ]
+      },
+      "version": "1.0.0"
     }
   ]
 }

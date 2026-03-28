@@ -1,17 +1,15 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/go-modulus/modulus/cli"
 	"github.com/go-modulus/modulus/config"
+	"github.com/go-modulus/modulus/logger"
 	"github.com/go-modulus/modulus/module"
 
 	"go.uber.org/fx"
 )
 
 func main() {
-	fmt.Println("Starting the application...")
 	config.LoadDefaultEnv()
 
 	// DO NOT Remove. It will be edited by the `mtools module create` CLI command.
@@ -25,10 +23,12 @@ func main() {
 				},
 			),
 		),
+		logger.NewModule(),
 	}
 
 	app := fx.New(
 		module.BuildFx(modules...),
+		logger.WithLoggerOption(),
 	)
 
 	app.Run()

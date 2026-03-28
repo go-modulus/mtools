@@ -16,7 +16,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/go-modulus/modulus/errors"
-	"github.com/go-modulus/modulus/errors/errbuilder"
 	"github.com/go-modulus/modulus/module"
 	"github.com/go-modulus/mtools/internal/manifesto"
 	"github.com/go-modulus/mtools/internal/mtools/cli/flag"
@@ -26,11 +25,18 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-var ErrPackageIsEmpty = errbuilder.New("package is empty").
-	WithHint("Please provide a package for the module in the manifest file.").Build()
-var ErrCannotRunGoGetCommand = errbuilder.New("cannot run go get command").Build()
-var ErrCannotInstallModule = errbuilder.New("cannot install the module").
-	WithHint("The install field in the manifest file should be a valid command running under 'go run'").Build()
+var ErrPackageIsEmpty = errors.NewWithHint(
+	"package is empty",
+	"Please provide a package for the module in the manifest file.",
+)
+var ErrCannotRunGoGetCommand = errors.NewWithHint(
+	"cannot run go get command",
+	"Cannot run go get command. Ensure that 'go get' command is available in your system. Install Golang if necessary https://go.dev/doc/install.",
+)
+var ErrCannotInstallModule = errors.NewWithHint(
+	"cannot install the module",
+	"The install field in the manifest file should be a valid command running under 'go run'",
+)
 
 type InstalledFileVars struct {
 	ModuleName     string
