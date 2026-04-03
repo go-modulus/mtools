@@ -13,18 +13,18 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-func NewManifest(usage string) cli.Flag {
+func NewRegistry(usage string) cli.Flag {
 	return &cli.StringFlag{
-		Name:        "manifest",
+		Name:        "registry",
 		Usage:       usage,
 		DefaultText: "https://raw.githubusercontent.com/go-modulus/registry/refs/heads/main/modules.json",
-		Aliases:     []string{"mf"},
+		Aliases:     []string{"r"},
 		Value:       "https://raw.githubusercontent.com/go-modulus/registry/refs/heads/main/modules.json",
 	}
 }
 
-func ManifestValue(cmd *cli.Command) (*manifesto.LocalManifesto, error) {
-	manifestPath := cmd.String("manifest")
+func RegistryValue(cmd *cli.Command) (*manifesto.LocalManifesto, error) {
+	manifestPath := cmd.String("registry")
 	if manifestPath == "" {
 		return manifestFromURL("https://raw.githubusercontent.com/go-modulus/registry/refs/heads/main/modules.json")
 	}

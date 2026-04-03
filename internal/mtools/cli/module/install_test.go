@@ -229,7 +229,7 @@ func TestInstall_Invoke(t *testing.T) {
 			cmd.Flags = append(cmd.Flags, flag.NewProjPath(projDir))
 			err = cmd.Run(
 				context.Background(),
-				[]string{"install", "--modules", "pgx", "--manifest", "manifest/modules.json"},
+				[]string{"install", "--modules", "pgx", "--registry", "manifest/modules.json"},
 			)
 
 			entrypointFileContent, errCont2 := os.ReadFile(fmt.Sprintf("%s/cmd/console/main.go", projDir))
@@ -269,7 +269,7 @@ func TestInstall_Invoke(t *testing.T) {
 			cmd.Flags = append(cmd.Flags, flag.NewProjPath(projDir))
 			err = cmd.Run(
 				context.Background(),
-				[]string{"install", "--modules", "dbmate migrator", "--manifest", projDir + "/manifest/modules.json"},
+				[]string{"install", "--modules", "dbmate migrator", "--registry", projDir + "/manifest/modules.json"},
 			)
 
 			entrypointFileContent, errCont2 := os.ReadFile(fmt.Sprintf("%s/cmd/console/main.go", projDir))
@@ -306,7 +306,7 @@ func TestInstall_Invoke(t *testing.T) {
 			cmd.Flags = append(cmd.Flags, flag.NewProjPath(projDir))
 			err = cmd.Run(
 				context.Background(),
-				[]string{"install", "--modules", "gqlgen", "--manifest", projDir + "/manifest/modules.json"},
+				[]string{"install", "--modules", "gqlgen", "--registry", projDir + "/manifest/modules.json"},
 			)
 
 			entrypointFileContent, errCont2 := os.ReadFile(fmt.Sprintf("%s/cmd/console/main.go", projDir))

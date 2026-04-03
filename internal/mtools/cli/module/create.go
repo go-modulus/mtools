@@ -32,6 +32,8 @@ var (
 	ErrCannotSaveLocalManifest = errsys.New("cannot save a local manifest", "Cannot save a local manifesto")
 	ErrCannotCreateDirectory   = errsys.New("cannot create a directory", "Cannot create a directory")
 	ErrCannotCreateModuleFile  = errsys.New("cannot create a module file", "Cannot create a module file")
+	ErrCannotInstallStorage    = errsys.New("cannot install the storage feature", "Cannot install the storage feature")
+	ErrCannotInstallGraphQL    = errsys.New("cannot install the graphql feature", "Cannot install the graphql feature")
 )
 
 type features struct {
@@ -154,7 +156,7 @@ func (c *Create) Invoke(
 		}
 		err = c.installStorageFeature(ctx, cmd, manifestItem, projPath)
 		if err != nil {
-			return err
+			return errors.WithTrace(errors.WithCause(ErrCannotInstallStorage, err))
 		}
 	}
 
@@ -236,7 +238,27 @@ func (c *Create) installStorageFeature(
 			return err
 		}
 	}
-	return c.installStorage.Install(ctx, md, cfg)
+	err := c.installStorage.Install(ctx, md, cfg)
+	if err != nil {
+		if errors.Is(err, action.ErrCannotInstallSqlc) {
+			fmt.Println(
+				color.YellowString(
+					"Cannot install the storage feature. Please install SQLc manually: https://docs.sqlc.dev/en/latest/overview/install.html",
+				),
+			)
+			return nil
+		}
+		if errors.Is(err, action.ErrCannotGenerateFiles) {
+			fmt.Println(
+				color.YellowString(
+					"Cannot generate SQLc DTO files. Please check the errors above. Try to run the command `sqlc generate -f sqlc.yaml` manually`.",
+				),
+			)
+			return nil
+		}
+		return errors.WithTrace(err)
+	}
+	return nil
 }
 
 func (c *Create) getFeatures(

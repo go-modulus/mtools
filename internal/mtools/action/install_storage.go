@@ -16,6 +16,15 @@ import (
 	"github.com/go-modulus/mtools/internal/mtools/utils"
 )
 
+var ErrCannotInstallSqlc = errors.NewWithHint(
+	"cannot install sqlc",
+	"Cannot install SQLc. Please check your internet connection and try again.",
+)
+var ErrCannotGenerateFiles = errors.NewWithHint(
+	"sqlc run error",
+	"Please check the sqlc.yaml file. SQLc cannot generate the files.",
+)
+
 type StorageConfig struct {
 	Schema             string
 	GenerateGraphql    bool
@@ -85,14 +94,17 @@ func (c *InstallStorage) Install(ctx context.Context, md module.Manifesto, cfg S
 	}
 
 	// work with sqlc
-	err = exec.CommandContext(ctx, "go", "install", "github.com/sqlc-dev/sqlc/cmd/sqlc@latest").Run()
-	if err != nil {
-		return err
-	}
+	sqlcInstallCmd := exec.CommandContext(ctx, "go", "install", "github.com/sqlc-dev/sqlc/cmd/sqlc@latest")
+	outSQLc, errSQLc := sqlcInstallCmd.CombinedOutput()
+
 	sqlcFile := storagePath + "/sqlc.yaml"
-	err = exec.CommandContext(ctx, "sqlc", "-f", sqlcFile, "generate").Run()
+	sqlcCmd := exec.CommandContext(ctx, "sqlc", "-f", sqlcFile, "generate")
+	out, err := sqlcCmd.CombinedOutput()
 	if err != nil {
-		return err
+		if errSQLc != nil {
+			return errors.WithTrace(errors.WithMeta(ErrCannotInstallSqlc, "response", string(outSQLc)))
+		}
+		return errors.WithTrace(errors.WithMeta(ErrCannotGenerateFiles, "sqlcFile", sqlcFile, "response", string(out)))
 	}
 	return nil
 }

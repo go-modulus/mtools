@@ -98,8 +98,8 @@ definition:
     - &plugin-dataloader
       name: dataloader
       wasm:
-        url: "https://github.com/debugger84/sqlc-dataloader/releases/download/v0.1.4/sqlc-dataloader.wasm"
-        sha256: "37db5b4b7db4040971f685a9029ce94f8fcca82c0020f9132e3e3975ab4c7d38"
+        url: "https://github.com/debugger84/sqlc-dataloader/releases/download/v0.1.5/sqlc-dataloader.wasm"
+        sha256: "83d3a855d95a2e0af60e51c0e8d6cc2d092b247596cb0459d5ad1103e50892e1"
   codegen:
     - &codegen-golang
       plugin: golang

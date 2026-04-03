@@ -63,7 +63,7 @@ Uses interactive prompts to make a choice.
 Adds the chosen module to the project and inits it with default files.
 Example: mtools module install
 Example without UI: mtools module install --modules="urfave cli,pgx"
-Example with a custom manifest located at proj-dir/manifest/modules.json: mtools module install --manifest="proj-dir/manifest/modules.json"
+Example with a custom manifest located at proj-dir/manifest/modules.json: mtools module install --registry="proj-dir/manifest/modules.json"
 `,
 		Action: addModule.Invoke,
 		Flags: []cli.Flag{
@@ -72,9 +72,9 @@ Example with a custom manifest located at proj-dir/manifest/modules.json: mtools
 				Usage:   "A comma-separated list of modules names to add to the project",
 				Aliases: []string{"m"},
 			},
-			flag.NewManifest(
+			flag.NewRegistry(
 				`A path to the global manifest with all available modules to install.
-Example: mtools module install --manifest="local_folder/modules.json"`,
+Example: mtools module install --registry="local_folder/modules.json"`,
 			),
 		},
 	}
@@ -88,7 +88,7 @@ func (c *Install) Invoke(
 	if len(modulesValue) == 0 {
 		utils.PrintLogo()
 	}
-	availableModulesManifest, err := flag.ManifestValue(cmd)
+	availableModulesManifest, err := flag.RegistryValue(cmd)
 	if err != nil {
 		fmt.Println(color.RedString("Cannot get the manifest file: %s", err.Error()))
 		return err

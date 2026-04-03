@@ -12,7 +12,7 @@ import (
 )
 
 func NewModule() *module.Module {
-	return module.NewModule("github.com/go-modulus/modulus/mtools").
+	return module.NewModule("github.com/go-modulus/mtools").
 		AddCliCommands(
 			cmdDb.NewDbCommand,
 			cmdRoot.NewInitProjectCommand,
