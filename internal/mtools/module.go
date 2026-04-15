@@ -24,6 +24,7 @@ func NewModule() *module.Module {
 			cmdModule.NewCreate,
 			cmdModule.NewAddCli,
 			cmdModule.NewAddJsonApi,
+			cmdModule.NewInitStorage,
 			action.NewInstallStorage,
 			action.NewUpdateSqlcConfig,
 			cmdDb.NewUpdateSQLCConfig,

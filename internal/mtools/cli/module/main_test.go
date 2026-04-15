@@ -14,6 +14,7 @@ var (
 	installModule *module.Install
 	createModule  *module.Create
 	addJsonApi    *module.AddJsonApi
+	initStorage   *module.InitStorage
 )
 
 func TestMain(m *testing.M) {
@@ -30,6 +31,7 @@ func TestMain(m *testing.M) {
 			&installModule,
 			&createModule,
 			&addJsonApi,
+			&initStorage,
 		),
 	)
 }

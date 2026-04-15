@@ -427,7 +427,7 @@ func (c *Install) addDependedModulesToInstall(
 		addedModulesMap[md.Name] = struct{}{}
 	}
 	for _, md := range modulesToInstall {
-		addedModulesMap[md.Package] = struct{}{}
+		addedModulesMap[md.Name] = struct{}{}
 	}
 
 	for _, md := range modulesToInstall {
