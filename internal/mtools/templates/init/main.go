@@ -15,7 +15,6 @@ func main() {
 	// DO NOT Remove. It will be edited by the `mtools module create` CLI command.
 	modules := []*module.Module{
 		cli.NewModule(
-			cli.InvokeStartCli,
 			cli.SetConfig(
 				cli.ModuleConfig{
 					Version: "0.1.0",
@@ -29,6 +28,7 @@ func main() {
 	app := fx.New(
 		module.BuildFx(modules...),
 		logger.WithLoggerOption(),
+		cli.InvokeStartCli(),
 	)
 
 	app.Run()

@@ -18,7 +18,6 @@ func main() {
 	// current path
 	path, _ := os.Getwd()
 	cliModule := cli.NewModule(
-		cli.InvokeStartCli,
 		cli.OverrideErrorHandler[*mtools.CliErrorHandler],
 		cli.SetConfig(
 			cli.ModuleConfig{
@@ -53,6 +52,7 @@ func main() {
 				return &fxevent.ZapLogger{Logger: logger}
 			},
 		),
+		cli.InvokeStartCli(),
 	)
 
 	app.Run()
