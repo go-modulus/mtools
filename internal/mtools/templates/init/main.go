@@ -27,7 +27,7 @@ func main() {
 
 	app := fx.New(
 		module.BuildFx(modules...),
-		logger.WithLoggerOption(),
+		logger.FxLoggerOption(),
 		cli.InvokeStartCli(),
 	)
 

@@ -10,7 +10,6 @@ import (
 	"github.com/go-modulus/mtools/internal/mtools/cli/flag"
 	cli2 "github.com/urfave/cli/v3"
 	"go.uber.org/fx"
-	"go.uber.org/fx/fxevent"
 	"go.uber.org/zap"
 )
 
@@ -30,28 +29,23 @@ func main() {
 		),
 	)
 
-	loggerModule := logger.NewModule().InitConfig(
-		&logger.ModuleConfig{
-			Type: "console",
-			App:  "modulus cli",
-		},
-	)
-
 	modules := []*module.Module{
 		cliModule,
-		loggerModule,
+		logger.NewModule(
+			logger.SetConfig(
+				logger.ModuleConfig{
+					Type:         "console",
+					App:          "modulus cli",
+					FxEventLevel: zap.WarnLevel.String(),
+				},
+			),
+		),
 		mtools.NewModule(),
 	}
 
 	app := fx.New(
 		module.BuildFx(modules...),
-		fx.WithLogger(
-			func(logger *zap.Logger) fxevent.Logger {
-				logger = logger.WithOptions(zap.IncreaseLevel(zap.WarnLevel))
-
-				return &fxevent.ZapLogger{Logger: logger}
-			},
-		),
+		logger.FxLoggerOption(),
 		cli.InvokeStartCli(),
 	)
 
