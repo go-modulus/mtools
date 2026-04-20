@@ -23,7 +23,7 @@ analyze: ## Run static analyzer
 
 .PHONY: install
 install: ## Make a binary to ./bin folder
-	go build -o ./bin/mtools  ./cmd/mtools/main.go
+	go build -o ./bin/mtools  ./main.go
 
 .PHONY: build-testproject
 build-testproject: ## Build the example of a project

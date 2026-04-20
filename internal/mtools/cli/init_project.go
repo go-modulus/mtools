@@ -31,7 +31,7 @@ func NewInitProjectCommand(c *InitProject) *cli.Command {
 		Name: "init",
 		Usage: `Inits a project with the base Modulus structure.
 Uses interactive prompts to create the project.
-Example: ./bin/modulus init --path /path/to/project --name my_project
+Example: mtools init --path /path/to/project --name my_project
 `,
 		Action: c.Invoke,
 		Flags: []cli.Flag{

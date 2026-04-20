@@ -1,13 +1,13 @@
 package module_test
 
 import (
+	"testing"
+
 	module2 "github.com/go-modulus/modulus/module"
 	"github.com/go-modulus/modulus/test"
 	"github.com/go-modulus/mtools/internal/mtools"
 	"github.com/go-modulus/mtools/internal/mtools/cli/module"
 	"go.uber.org/fx"
-	"os"
-	"testing"
 )
 
 var (
@@ -18,11 +18,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	currentDir, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-	test.LoadEnv(currentDir + "/../../../..")
+	test.LoadEnv()
 	currentModule := mtools.NewModule()
 	test.TestMain(
 		m,

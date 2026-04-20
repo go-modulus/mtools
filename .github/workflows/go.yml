@@ -22,7 +22,7 @@ jobs:
         go-version: '1.26'
 
     - name: Build
-      run: go build -o ./bin/mtools  ./cmd/mtools/main.go
+      run: go build -o ./bin/mtools  ./main.go
 
     - name: Test
       run: go test -v ./...

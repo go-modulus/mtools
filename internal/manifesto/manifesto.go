@@ -11,10 +11,6 @@ import (
 	"github.com/go-modulus/modulus/module"
 )
 
-var ErrCannotReadDefaultEntries = errors.NewWithHint(
-	"cannot read entries",
-	"The application entrypoints are not found in cmd/folder.",
-)
 var ErrCannotGetLocalManifest = errsys.New("cannot get a local manifest", "Cannot get a local manifesto")
 
 type Entrypoint struct {
@@ -116,32 +112,4 @@ func fileExists(filename string) bool {
 		return false
 	}
 	return !info.IsDir()
-}
-
-func readEntries(projPath string) (entries []Entrypoint, err error) {
-	folders, err := os.ReadDir(projPath + "/cmd")
-	if err != nil {
-		return
-	}
-	entries = make([]Entrypoint, 0, len(folders))
-	for _, entry := range folders {
-		if entry.IsDir() {
-			entryItem := Entrypoint{
-				Name: entry.Name(),
-			}
-			_, err2 := os.Stat(projPath + "/cmd/" + entry.Name() + "/main.go")
-			if os.IsNotExist(err2) {
-				continue
-			}
-
-			if err2 != nil {
-				err = err2
-				return
-			}
-			entryItem.LocalPath = "cmd/" + entry.Name() + "/main.go"
-			entries = append(entries, entryItem)
-		}
-	}
-
-	return
 }

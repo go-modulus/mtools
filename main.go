@@ -20,7 +20,7 @@ func main() {
 		cli.OverrideErrorHandler[*mtools.CliErrorHandler],
 		cli.SetConfig(
 			cli.ModuleConfig{
-				Version: "0.1.2",
+				Version: "0.1.3",
 				Usage:   "This is a CLI tool for the Modulus framework. It helps developer to create a new project, add modules, and manage the project.",
 				GlobalFlags: []cli2.Flag{
 					flag.NewProjPath(path),

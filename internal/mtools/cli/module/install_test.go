@@ -15,6 +15,12 @@ const localModulesJson = `{
   "name": "Modulus framework modules manifest",
   "version": "1.0.0",
   "description": "List of installed modules for the Modulus framework",
+  "entries": [
+    {
+      "localPath": "cmd/console/main.go",
+      "name": "console"
+    }
+  ],
   "modules": [
     {
       "name": "urfave cli",
@@ -74,7 +80,7 @@ const availableModulesJson = ` {
     },
     {
       "name": "dbmate migrator",
-      "package": "github.com/go-modulus/modulus/db/migrator",
+      "package": "github.com/go-modulus/pgx/migrator",
       "description": "Several CLI commands to use DBMate (https://github.com/amacneil/dbmate) migration tool inside your application.",
       "install": {
         "dependencies": [
@@ -86,7 +92,7 @@ const availableModulesJson = ` {
     },
 	{
       "name": "gqlgen",
-      "package": "github.com/go-modulus/modulus/graphql",
+      "package": "github.com/go-modulus/graphql",
       "description": "Graphql server and generator. It is based on the gqlgen library. It also provides a playground for the graphql server.",
       "install": {
         "envVars": [
@@ -98,7 +104,7 @@ const availableModulesJson = ` {
         ],
 		"files": [
           {
-            "sourceUrl": "https://raw.githubusercontent.com/go-modulus/modulus/refs/heads/main/graphql/install/module.go.tmpl",
+            "sourceUrl": "https://raw.githubusercontent.com/go-modulus/graphql/refs/heads/main/install/module.go.tmpl",
             "destFile": "internal/graphql/module.go"
           }
 		]
@@ -290,7 +296,7 @@ func TestInstall_Invoke(t *testing.T) {
 			t.Log("	The modules.json file should be updated with the new 2 modules")
 			require.NoError(t, errCont4)
 			require.Contains(t, string(modulesContent), "github.com/go-modulus/pgx")
-			require.Contains(t, string(modulesContent), "github.com/go-modulus/modulus/db/migrator")
+			require.Contains(t, string(modulesContent), "github.com/go-modulus/pgx/migrator")
 		},
 	)
 
