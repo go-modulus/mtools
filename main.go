@@ -2,6 +2,8 @@ package main
 
 import (
 	"os"
+	"runtime/debug"
+	"strings"
 
 	"github.com/go-modulus/modulus/cli"
 	"github.com/go-modulus/modulus/logger"
@@ -13,6 +15,17 @@ import (
 	"go.uber.org/zap"
 )
 
+func moduleVersion() string {
+	bi, ok := debug.ReadBuildInfo()
+	if !ok {
+		return "unknown"
+	}
+	if bi.Main.Version == "" || bi.Main.Version == "(devel)" {
+		return "unknown"
+	}
+	return strings.TrimPrefix(bi.Main.Version, "v")
+}
+
 func main() {
 	// current path
 	path, _ := os.Getwd()
@@ -20,7 +33,7 @@ func main() {
 		cli.OverrideErrorHandler[*mtools.CliErrorHandler],
 		cli.SetConfig(
 			cli.ModuleConfig{
-				Version: "0.1.3",
+				Version: moduleVersion(),
 				Usage:   "This is a CLI tool for the Modulus framework. It helps developer to create a new project, add modules, and manage the project.",
 				GlobalFlags: []cli2.Flag{
 					flag.NewProjPath(path),
