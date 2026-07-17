@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/go-modulus/modulus/errors"
 	"github.com/go-modulus/mtools/internal/mtools/utils"
 	"github.com/manifoldco/promptui"
 	"github.com/urfave/cli/v3"
@@ -214,11 +215,16 @@ func (c *InitProject) createProjectRelatedFiles() error {
 		"main.go":        "cmd/console/main.go",
 		"modules.json":   "modules.json",
 	}
+	var errs []error
 	for source, name := range names {
 		err := utils.CopyFromTemplates("init/"+source, name)
 		if err != nil {
-			return err
+			errs = append(errs, err)
 		}
+	}
+
+	if len(errs) > 0 {
+		return errors.Join(errs...)
 	}
 
 	return nil
