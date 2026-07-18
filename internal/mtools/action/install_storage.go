@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"text/template"
 
 	"github.com/fatih/color"
@@ -94,17 +93,16 @@ func (c *InstallStorage) Install(ctx context.Context, md module.Manifesto, cfg S
 	}
 
 	// work with sqlc
-	sqlcInstallCmd := exec.CommandContext(ctx, "go", "install", "github.com/sqlc-dev/sqlc/cmd/sqlc@latest")
-	outSQLc, errSQLc := sqlcInstallCmd.CombinedOutput()
+	errSQLc := utils.ExecCommand(ctx, "go", "install", "github.com/sqlc-dev/sqlc/cmd/sqlc@latest")
 
 	sqlcFile := storagePath + "/sqlc.yaml"
-	sqlcCmd := exec.CommandContext(ctx, "sqlc", "-f", sqlcFile, "generate")
-	out, err := sqlcCmd.CombinedOutput()
+	err = utils.ExecCommand(ctx, "sqlc", "-f", sqlcFile, "generate")
+
 	if err != nil {
 		if errSQLc != nil {
-			return errors.WithTrace(errors.WithMeta(ErrCannotInstallSqlc, "response", string(outSQLc)))
+			return errors.WithTrace(ErrCannotInstallSqlc)
 		}
-		return errors.WithTrace(errors.WithMeta(ErrCannotGenerateFiles, "sqlcFile", sqlcFile, "response", string(out)))
+		return errors.WithTrace(errors.WithMeta(ErrCannotGenerateFiles, "sqlcFile", sqlcFile))
 	}
 	return nil
 }

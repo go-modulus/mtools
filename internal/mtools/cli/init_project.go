@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/fatih/color"
@@ -170,31 +169,31 @@ func (c *InitProject) walkToProjectFolder(path string) error {
 func (c *InitProject) initGoModules(ctx context.Context, name string) error {
 	fmt.Println("Initializing go modules")
 	if !utils.FileExists("go.mod") {
-		err := exec.CommandContext(ctx, "go", "mod", "init", name).Run()
+		err := utils.ExecCommand(ctx, "go", "mod", "init", name)
 		if err != nil {
 			return err
 		}
 	}
-	err := exec.CommandContext(ctx, "go", "get", "github.com/vektra/mockery/v2").Run()
+	err := utils.ExecCommand(ctx, "go", "get", "github.com/vektra/mockery/v2")
 	if err != nil {
 		return err
 	}
 
-	err = exec.CommandContext(ctx, "go", "get", "github.com/rakyll/gotest").Run()
+	err = utils.ExecCommand(ctx, "go", "get", "github.com/rakyll/gotest")
 	if err != nil {
 		return err
 	}
 
-	err = exec.CommandContext(ctx, "go", "get", "github.com/go-modulus/modulus@latest").Run()
+	err = utils.ExecCommand(ctx, "go", "get", "github.com/go-modulus/modulus@latest")
 	if err != nil {
 		return err
 	}
 
-	err = exec.CommandContext(ctx, "go", "get", "-u", "all").Run()
+	err = utils.ExecCommand(ctx, "go", "get", "-u", "all")
 	if err != nil {
 		return err
 	}
-	err = exec.CommandContext(ctx, "go", "mod", "tidy").Run()
+	err = utils.ExecCommand(ctx, "go", "mod", "tidy")
 	if err != nil {
 		return err
 	}

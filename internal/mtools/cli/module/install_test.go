@@ -59,6 +59,14 @@ const availableModulesJson = ` {
         ],
         "dependencies": [
           "slog logger"
+        ],
+		"postInstallCommands": [
+          {
+            "cmdPackage": "golang.org/x/example/hello@latest",
+            "params": [
+              "test"
+            ]
+          }
         ]
       },
       "version": "1.0.0"

@@ -57,12 +57,10 @@ func (c *Generate) Invoke(
 			continue
 		}
 		fmt.Println("Generate DTO and DAO files for the", color.BlueString(md.Name), "module")
-		fmt.Printf("Running %s ...\n", color.BlueString("sqlc -f "+sqlcFile+" generate"))
-		cmd := exec.CommandContext(ctx, "sqlc", "-f", sqlcFile, "generate")
-		_, err := cmd.Output()
+		err = utils.ExecCommand(ctx, "sqlc", "-f", sqlcFile, "generate")
 		if err != nil {
-			if ee, ok := err.(*exec.ExitError); ok {
-				fmt.Println(color.RedString("Execution error:", string(ee.Stderr)))
+			if errors.Is(err, &exec.ExitError{}) {
+				fmt.Println(color.RedString("Execution error:", string(err.(*exec.ExitError).Stderr)))
 			} else {
 				fmt.Println(color.RedString("Cannot start the sqlc command: %s", err.Error()))
 			}

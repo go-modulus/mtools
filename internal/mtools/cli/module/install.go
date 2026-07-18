@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"os/exec"
 	"path"
 	"strings"
 	"text/template"
@@ -183,6 +182,9 @@ func (c *Install) Invoke(
 			hasErrors = true
 			continue
 		}
+		// save the local manifesto file with added module if necessary
+		// it has to be called before the post install commands because
+		// post install command may relay on the local manifest file
 		if _, ok := localModulesMap[md.Package]; !ok {
 			manifest.Modules = append(manifest.Modules, md)
 
@@ -190,6 +192,28 @@ func (c *Install) Invoke(
 			if err != nil {
 				fmt.Println(color.RedString("Cannot save the local manifest file modules.json: %s", err.Error()))
 				hasErrors = true
+			}
+		}
+		// run post install commands
+		if len(md.Install.PostInstallCommands) != 0 {
+			fmt.Printf("Running the post install commands for the module %s...\n", color.BlueString(md.Name))
+			for _, cmd := range md.Install.PostInstallCommands {
+				runPckg := cmd.CmdPackage
+				if !strings.Contains(cmd.CmdPackage, "@") {
+					runPckg = cmd.CmdPackage + "@latest"
+				}
+
+				params := append([]string{"run", runPckg}, cmd.Params...)
+				err = utils.ExecCommand(ctx, "go", params...)
+				if err != nil {
+					fmt.Println(
+						color.RedString(
+							"Cannot run the post install command for the module %s: %s",
+							md.Name,
+							err.Error(),
+						),
+					)
+				}
 			}
 		}
 	}
@@ -221,7 +245,7 @@ func (c *Install) installModule(
 	fmt.Printf("Getting a package %s...\n", color.BlueString(md.Package))
 	cmdCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
-	err := exec.CommandContext(cmdCtx, "go", "get", md.Package).Run()
+	err := utils.ExecCommand(cmdCtx, "go", "get", md.Package)
 	if err != nil {
 		return errors.WithCause(ErrCannotRunGoGetCommand, err)
 	}
@@ -243,8 +267,7 @@ func (c *Install) installModule(
 		fmt.Printf("File %s is updated\n", color.BlueString(entrypoint.path))
 	}
 
-	fmt.Printf("Running %s...\n", color.BlueString("go mod tidy"))
-	err = exec.CommandContext(cmdCtx, "go", "mod", "tidy").Run()
+	err = utils.ExecCommand(cmdCtx, "go", "mod", "tidy")
 	if err != nil {
 		return errors.WithCause(ErrCannotRunGoGetCommand, err)
 	}
@@ -297,24 +320,6 @@ func (c *Install) installModule(
 					continue
 				}
 				fmt.Printf("File %s is updated\n", color.BlueString(entrypoint.path))
-			}
-		}
-	}
-	if len(md.Install.PostInstallCommands) != 0 {
-		fmt.Printf("Running the post install commands for the module %s...\n", color.BlueString(md.Name))
-		for _, cmd := range md.Install.PostInstallCommands {
-			fmt.Printf("Adding the package %s to the tools.go file...\n", color.BlueString(md.Package))
-
-			runPckg := cmd.CmdPackage
-			if !strings.Contains(cmd.CmdPackage, "@") {
-				runPckg = cmd.CmdPackage + "@latest"
-			}
-
-			fmt.Printf("Running %s...\n", color.BlueString("go run "+runPckg))
-			params := append([]string{"run", runPckg}, cmd.Params...)
-			err = exec.CommandContext(cmdCtx, "go", params...).Run()
-			if err != nil {
-				return errors.WithCause(ErrCannotInstallModule, err)
 			}
 		}
 	}
